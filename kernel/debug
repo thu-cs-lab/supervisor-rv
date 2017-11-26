@@ -1,0 +1,2 @@
+#!/bin/sh
+./qemu-system-mipsel -M mipssim -m 32M -bios boot/loader.bin -vnc :0 -serial pipe:/tmp/acm -S -s
