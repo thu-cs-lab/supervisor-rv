@@ -1,4 +1,5 @@
 RM	:= rm -f
+#GCCPREFIX	:= mipsel-linux-gnu-
 GCCPREFIX	:= mips-sde-elf-
 LD	:= $(GCCPREFIX)ld
 CC	:= $(GCCPREFIX)gcc
