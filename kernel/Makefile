@@ -22,10 +22,17 @@ else
 endif
 ASFLAG += $(MACH_DEF)
 
+override EN_INT ?= n
+ifeq ($(EN_INT), y)
+	ASFLAG += -DENABLE_INT
+	EN_TLB = n
+endif
+
 override EN_TLB ?= n
 ifeq ($(EN_TLB), y)
 	ASFLAG += -DENABLE_TLB
 endif
+
 
 .PHONY: all clean show-utest
 

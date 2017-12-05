@@ -7,8 +7,9 @@
     .text
     .global SCHEDULE
 
-SCHEDULE:                           // 调度程序。此时处于中断处理中。
-    lui t1, %hi(TCBT)
+SCHEDULE:                           
+#ifdef ENABLE_INT                             
+    lui t1, %hi(TCBT)               // 调度程序。此时处于中断处理中。
     ori t1, t1, %lo(TCBT)           // 获得TCBT地址
     lw t2, 0(t1)                    // 获得idle的TCB地址
     lui t4, %hi(current)
@@ -23,10 +24,11 @@ SCHEDULE:                           // 调度程序。此时处于中断处理�
     sw sp, %lo(current)(t4)         // 设置current为调度线程
     j RETURNFRMTRAP                 // 退出中断，加载调度线程中断帧，完成线程切换
     nop
-
-
-
-
+#else
+    nop
+    nop
+    nop
+#endif
 
     .set reorder
     .set at

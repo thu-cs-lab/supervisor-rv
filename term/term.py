@@ -12,9 +12,13 @@ import serial
 import select
 from timeit import default_timer as timer
 import math
+import argparse
 
 CCPREFIX = "mips-sde-elf-"
 # CCPREFIX = 'mipsel-linux-gnu-'
+
+Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
+                's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
 
 # convert 32-bit int to byte string of length 4, from LSB to MSB
 def int_to_byte_string(val):
@@ -106,8 +110,9 @@ def run_R():
     for i in xrange(1, 31):
         val_raw = inp.read(4)
         val = byte_string_to_int(val_raw)
-        print('R%s = 0x%08x' % (
+        print('R{0}{1:7} = 0x{2:0>8x}'.format(
             str(i).ljust(2),
+            '(' + Reg_alias[i] + ')',
             val,
         ))
 
@@ -118,10 +123,7 @@ def run_D(addr, num):
     outp.write(int_to_byte_string(num))
     counter = 0
     while counter < num:
-    # for i in xrange(1, num + 1):
         val_raw = inp.read(4)
-        #debug
-        print 'in run_D: val_raw is', hex(ord(val_raw[0])), hex(ord(val_raw[1])), hex(ord(val_raw[2])), hex(ord(val_raw[3])), 
         counter = counter + 4
         val = byte_string_to_int(val_raw)
         print('0x%08x: ' % addr),
@@ -228,7 +230,7 @@ class tcp_wrapper:
         bytes_recd = 0
         while bytes_recd < MSGLEN:
             chunk = self.sock.recv(min(MSGLEN - bytes_recd, 2048))
-            print 'read:...', list(map(lambda c: hex(ord(c)), chunk))
+            # print 'read:...', list(map(lambda c: hex(ord(c)), chunk))
             if chunk == '':
                 raise RuntimeError("socket connection broken")
             chunks.append(chunk)
@@ -270,11 +272,18 @@ def InitializeTCP(host_port):
     return True
 
 if __name__ == "__main__":
-    para = '127.0.0.1:6666' if len(sys.argv) != 2 else sys.argv[1]
+    # para = '127.0.0.1:6666' if len(sys.argv) != 2 else sys.argv[1]
+
+    parser = argparse.ArgumentParser(description = 'Term for mips32 expirence.')
+    parser.add_argument('-c', '--continued', action='store_true', help='Term will not wait for welcome if this flag is set')
+    parser.add_argument('-a', '--addr', default='127.0.0.1', help='IP address for communication')
+    parser.add_argument('-p', '--port', default='6666', help='Communication port')
+    args = parser.parse_args()
+    para = args.addr + ':' + args.port
 
     if not InitializeTCP(para):
         # Initialize(para)
         print 'Invalid address'
         exit(0)
-    Main(False)
+    Main(not args.continued)
 
