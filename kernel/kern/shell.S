@@ -175,7 +175,9 @@ SHELL:
     jal WRITESERIAL                 // 告诉终端用户程序开始运行
     nop
 
+#ifdef ENABLE_INT
     mtc0 v0, CP0_EPC                // 用户程序入口写入EPC
+#endif
 
     lui ra, %hi(uregs)              // 定位用户空间寄存器备份地址
     ori ra, ra, %lo(uregs)
@@ -216,7 +218,11 @@ SHELL:
     lui ra, %hi(.USERRET2)          // ra写入返回地址
     ori ra, ra, %lo(.USERRET2)
     nop
+#ifdef ENABLE_INT
     eret                            // 进入用户程序
+#else
+    jr v0
+#endif
     nop
 .USERRET2:
     nop

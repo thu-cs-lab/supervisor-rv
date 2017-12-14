@@ -1,0 +1,4 @@
+*.mp4
+*/kernel.elf
+*/obj/*
+*.test

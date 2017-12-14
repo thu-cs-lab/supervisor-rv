@@ -1,6 +1,8 @@
 #include <regdef.h>
 #include <mipsregs.h> 
 
+// You don't have to care about this file if you don't enable interrupt and TLB.
+
     .set noreorder
     .set noat
     .p2align 2

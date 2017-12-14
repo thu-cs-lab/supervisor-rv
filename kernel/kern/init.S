@@ -45,6 +45,10 @@ PTESTACK:
     .global START
 
 START:                              // kernel init
+    nop
+    nop
+    nop
+#ifdef ENABLE_INT
     mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
     nop
     xori t1, t0, (ST0_IM | ST0_IE | ST0_EXL | ST0_ERL)
@@ -66,7 +70,7 @@ START:                              // kernel init
     xor t1, t1, t0
     and t0, t0, t1                  // Cause IV位置零
     mtc0 t0, CP0_CAUSE              // 关闭中断特殊入口
-
+#endif
     lui sp, %hi(KERNEL_STACK_INIT)  // 设置内核栈
     ori sp, sp, %lo(KERNEL_STACK_INIT)
     or fp, sp, zero
@@ -99,10 +103,13 @@ START:                              // kernel init
     ori t1, zero, 0x10
     sb t1, %lo(SerialData)(t0)      // 串口可读中断
 #endif
+
+#ifdef ENABLE_INT
     /* enable serial interrupt */
     mfc0 t0, CP0_STATUS
     ori t0, t0, STATUSF_IP4         // hardware interrupt source #2, irq #4
     mtc0 t0, CP0_STATUS
+#endif
 
 
     ori t0, zero, TF_SIZE / 4       // 计数器
@@ -115,6 +122,7 @@ START:                              // kernel init
     lui t0, %hi(TCBT)
     ori t0, t0, %lo(TCBT)           // 载入TCBT地址
     sw sp, 0(t0)                    // thread0(idle)的中断帧地址设置
+#ifdef ENABLE_INT
     mfc0 t1, CP0_STATUS             // 取STATUS
     mfc0 t2, CP0_CAUSE              // 取CAUSE
     ori t1, t1, ST0_IE              // 使能中断
@@ -123,6 +131,7 @@ START:                              // kernel init
     lui t3, %hi(IDLELOOP)
     ori t3, t3, %lo(IDLELOOP)       // 取得idle线程入口
     sw t3, TF_EPC(sp)               // 写中断帧EPC
+#endif
     or t6, sp, zero                 // t6保存idle中断帧位置
 
     ori t0, zero, TF_SIZE / 4       // 计数器
@@ -247,6 +256,7 @@ START:                              // kernel init
     nop
 #endif
 
+#ifdef ENABLE_INT
     mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
     nop
     ori t0, t0, ST0_IE              // status Reg 的IE位置一
@@ -254,6 +264,7 @@ START:                              // kernel init
     and t0, t0, t1                  // 主线程屏蔽串口硬件中断
     mtc0 t0, CP0_STATUS             // 启动完成，恢复中断机制
     nop
+#endif
 
     j WELCOME                       // 进入主线程
     nop

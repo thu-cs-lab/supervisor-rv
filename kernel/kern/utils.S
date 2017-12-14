@@ -40,8 +40,10 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     andi t0, t0, 0x0002             // 截取读状态位
     bne t0, zero, .RSERIAL          // 状态位非零可读进入读
     nop
+#ifdef ENABLE_INT
     ori v0, zero, SYS_wait          // 取得wait调用号
     syscall SYSCALL_BASE            // 睡眠等待
+#endif
     j .TESTR                        // 检测验证
     nop
 .RSERIAL:
@@ -56,8 +58,12 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     andi t0, t0, COM_LSR_DATA
     bne t0, zero, .RSERIAL
     nop
+#ifdef ENABLE_INT
+    // donghy's debug
+    // if interrupt is not enabled, shell will always check COM STATUS
     ori v0, zero, SYS_wait
     syscall SYSCALL_BASE
+#endif
     j .TESTR
     nop
 .RSERIAL:
