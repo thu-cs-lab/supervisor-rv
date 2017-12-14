@@ -35,7 +35,7 @@ def single_line_asm(instr):
         subprocess.check_output([
             CCPREFIX + 'as', '-EL', '-mips32r2', tmp_asm.name, '-o', tmp_obj.name])
         subprocess.check_call([
-            CCPREFIX + 'objcopy', '-O', 'binary', tmp_obj.name, tmp_binary.name])
+            CCPREFIX + 'objcopy', '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
         with open(tmp_binary.name, 'r') as f:
             binary = f.read()
             if len(binary) == 8 and binary[4:] == '\0' * 4:
