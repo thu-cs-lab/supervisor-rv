@@ -177,6 +177,8 @@ SHELL:
 
 #ifdef ENABLE_INT
     mtc0 v0, CP0_EPC                // 用户程序入口写入EPC
+#else
+    or k0, v0, zero
 #endif
 
     lui ra, %hi(uregs)              // 定位用户空间寄存器备份地址
@@ -209,8 +211,8 @@ SHELL:
     lw $23, PUTREG(23)(ra)
     lw $24, PUTREG(24)(ra)
     lw $25, PUTREG(25)(ra)
-    lw $26, PUTREG(26)(ra)
-    lw $27, PUTREG(27)(ra)
+    //lw $26, PUTREG(26)(ra)
+    //lw $27, PUTREG(27)(ra)
     lw $28, PUTREG(28)(ra)
     lw $29, PUTREG(29)(ra)
     lw $30, PUTREG(30)(ra)
@@ -221,9 +223,9 @@ SHELL:
 #ifdef ENABLE_INT
     eret                            // 进入用户程序
 #else
-    jr v0
-#endif
+    jr k0
     nop
+#endif
 .USERRET2:
     nop
 
@@ -255,8 +257,8 @@ SHELL:
     sw $23, PUTREG(23)(ra)
     sw $24, PUTREG(24)(ra)
     sw $25, PUTREG(25)(ra)
-    sw $26, PUTREG(26)(ra)
-    sw $27, PUTREG(27)(ra)
+    //sw $26, PUTREG(26)(ra)
+    //sw $27, PUTREG(27)(ra)
     sw $28, PUTREG(28)(ra)
     sw $29, PUTREG(29)(ra)
     sw $30, PUTREG(30)(ra)
