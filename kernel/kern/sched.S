@@ -7,6 +7,8 @@
     .text
     .global SCHEDULE
 
+/* 本文件仅在启用异常处理时有用 */
+
 SCHEDULE:                           
 #ifdef ENABLE_INT                             
     lui t1, %hi(TCBT)               // 调度程序。此时处于中断处理中。
@@ -25,8 +27,7 @@ SCHEDULE:
     j RETURNFRMTRAP                 // 退出中断，加载调度线程中断帧，完成线程切换
     nop
 #else
-    nop
-    nop
+    b SCHEDULE                      // Infinity loop for debug
     nop
 #endif
 

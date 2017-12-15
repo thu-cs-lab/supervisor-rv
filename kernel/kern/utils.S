@@ -51,7 +51,7 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     lb v0, %lo(SerialData)(t1)      // 读出
     jr ra
     nop
-#else
+#else //ifdef MACH_FPGA
     lui t1, %hi(COM1)
 .TESTR:
     lb t0, %lo(COM_LSR)(t1)
@@ -71,7 +71,7 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     lb v0, %lo(COM1)(t1)
     jr ra
     nop
-#endif
+#endif //ifdef MACH_FPGA
 
 READSERIALWORD:
     addiu sp, sp, -0x14             // 保存ra,s0

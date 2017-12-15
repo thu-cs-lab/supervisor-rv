@@ -10,9 +10,19 @@
     .global EXCEPTIONHANDLER
     .global RETURNFRMTRAP
 
+/* 本文件仅在启用异常处理时有用 */
+
+#ifndef ENABLE_INT
+FATAL:
+EXCEPTIONHANDLER:
+RETURNFRMTRAP:
+WAKEUPSHELL:
+SYSCALL:
+    b   FATAL                       // 不支持异常时，这些入口都不应该进入，如果进入就永远等待，用于调试
+    nop
+#else
 
 FATAL:                              
-#ifdef ENABLE_INT
                                     // 严重问题，重启
     ori a0, zero, 0x80              // 错误信号
     jal WRITESERIAL                 // 发送
@@ -21,15 +31,9 @@ FATAL:
     ori v0, v0, %lo(START)
     jr v0
     nop
-#else
-    nop
-    nop
-    nop
-#endif
 
 
 EXCEPTIONHANDLER:
-#ifdef ENABLE_INT
     mfc0 k0, CP0_STATUS             // 处理一般中断
     nop
     xori k1, k0, ST0_IE
@@ -92,15 +96,9 @@ EXCEPTIONHANDLER:
 
     j FATAL                         // 无法处理的中断，出现严重错误
     nop
-#else
-    nop
-    nop
-    nop
-#endif
 
 
 RETURNFRMTRAP:
-#ifdef ENABLE_INT
     lw k0, TF_STATUS(sp)
     ori k0, k0, ST0_IE              // 使能中断。通常eret自动取消EXL位。
     xori k1, k0, ST0_ERL
@@ -144,16 +142,10 @@ RETURNFRMTRAP:
     lw sp, TF_sp(sp)                // 从中断帧中恢复
     eret
     nop
-#else
-    nop
-    nop
-    nop
-#endif
 
 
 
 WAKEUPSHELL:
-#ifdef ENABLE_INT
     lui t1, %hi(current)
     lw t1, %lo(current)(t1)         // 取得当前线程TCB地址
     lui t0, %hi(TCBT)
@@ -163,14 +155,8 @@ WAKEUPSHELL:
     nop
     j SCHEDULE                      // 进行调度使主线程获得控制权
     nop
-#else
-    nop
-    nop
-    nop
-#endif
 
 SYSCALL:
-#ifdef ENABLE_INT
     lw k0, TF_EPC(sp)               // SYSCALL需对EPC特别处理
     addiu k0, k0, 0x4               // EPC+4,退出中断后执行SYSCALL的下一条语句
     sw k0, TF_EPC(sp)
@@ -194,10 +180,6 @@ SYSCALL:
     jal WRITESERIAL                 // 写串口采用忙等待，不产生嵌套中断
     nop
     j RETURNFRMTRAP
-    nop
-#else
-    nop
-    nop
     nop
 #endif
 
