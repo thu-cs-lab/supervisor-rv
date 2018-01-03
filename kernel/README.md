@@ -1,9 +1,4 @@
-# monitor - 32位监控程序
-
-## 初衷
-
-- 16位监控程序升级为32位。
-- 转换串口读取方式，从轮寻转换为中断。
+# supervisor-32 —— 32位监控程序
 
 ## 准备
 
@@ -16,43 +11,44 @@
 
 ## 使用指令
 
-以下指令是不打开TLB选项时也必须。
+以下指令是必须的。
 
 1. `ADDIU 001001ssssstttttiiiiiiiiiiiiiiii`
+1. `ADDU 000000ssssstttttddddd00000100001`
 1. `AND 000000ssssstttttddddd00000100100`
 1. `ANDI 001100ssssstttttiiiiiiiiiiiiiiii`
 1. `BEQ 000100ssssstttttoooooooooooooooo`
+1. `BGTZ 000111sssss00000oooooooooooooooo`
 1. `BNE 000101ssssstttttoooooooooooooooo`
-1. `ERET 01000010000000000000000000011000`
 1. `J 000010iiiiiiiiiiiiiiiiiiiiiiiiii`
 1. `JAL 000011iiiiiiiiiiiiiiiiiiiiiiiiii`
 1. `JR 000000sssss0000000000hhhhh001000`
 1. `LB 100000bbbbbtttttoooooooooooooooo`
 1. `LUI 00111100000tttttiiiiiiiiiiiiiiii`
 1. `LW 100011bbbbbtttttoooooooooooooooo`
-1. `MFC0 01000000000tttttddddd00000000lll`
-1. `MTC0 01000000100tttttddddd00000000lll`
 1. `OR 000000ssssstttttddddd00000100101`
 1. `ORI 001101ssssstttttiiiiiiiiiiiiiiii`
 1. `SB 101000bbbbbtttttoooooooooooooooo`
 1. `SLL 00000000000tttttdddddaaaaa000000`
 1. `SRL 00000000000tttttdddddaaaaa000010`
 1. `SW 101011bbbbbtttttoooooooooooooooo`
-1. `SYSCALL 000000cccccccccccccccccccc001100`
 1. `XOR 000000ssssstttttddddd00000100110`
 1. `XORI 001110ssssstttttiiiiiiiiiiiiiiii`
 
-增加TLB支持，需要以下指令。
+如果使能异常、中断支持，需要增加以下指令。
+
+1. `ERET 01000010000000000000000000011000`
+1. `MFC0 01000000000tttttddddd00000000lll`
+1. `MTC0 01000000100tttttddddd00000000lll`
+1. `SYSCALL 000000cccccccccccccccccccc001100`
+
+如果进一步使能TLB支持，需要增加以下指令。
 
 1. `TLBP 01000010000000000000000000001000`
 1. `TLBR 01000010000000000000000000000001`
 1. `TLBWI 01000010000000000000000000000010`
 1. `TLBWR 01000010000000000000000000000110`
 
-使用已有的bootloader，需要增加对以下指令的支持。
-
-1. `ADDU 000000ssssstttttddddd00000100001`
-1. `BGTZ 000111sssss00000oooooooooooooooo`
 
 ## 设计
 

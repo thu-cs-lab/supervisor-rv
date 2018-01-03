@@ -26,7 +26,10 @@ UTEST_SIMPLE:
     jr ra
     nop
 
-
+    /*  系统调用测试程序
+     *  该测试仅在实现异常处理时有效
+     */
+#ifdef ENABLE_INT
 UTEST_PUTC:
     ori v0, zero, SYS_putc          // 系统调用号
     ori a0, zero, 0x4F              // 'O'
@@ -37,6 +40,7 @@ UTEST_PUTC:
     nop
     jr ra
     nop
+#endif
 
 
     /*  性能标定程序(1)

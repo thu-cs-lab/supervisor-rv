@@ -22,6 +22,7 @@ EHANDLERLOCATE:                     // 定位普通中断处理程序
 
     .section .text.ebase
 TLBREFILL:                          // TLB快速重填
+#ifdef ENABLE_TLB
     mfc0 k1, CP0_CONTEXT
     lw k0, 0x0(k1)
     lw k1, 0x8(k1)
@@ -30,8 +31,8 @@ TLBREFILL:                          // TLB快速重填
     nop
     tlbwr
     eret
+#endif
     nop
-
 
 
     .set reorder

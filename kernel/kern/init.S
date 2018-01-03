@@ -9,7 +9,7 @@
     .section .rodata
     .p2align 2
 monitor_version:
-    .asciz "MONITOR for MIPS32 - interrupt on"
+    .asciz "MONITOR for MIPS32 - initialized."
 
     .section .data
     .p2align 2
@@ -99,9 +99,9 @@ START:                              // kernel init
     ori t1, zero, %lo(COM_IER_RDI)
     sb t1, %lo(COM_IER)(t0)         // :67
 #else
-    lui t0, %hi(SerialData)
+    lui t0, %hi(SerialStat)
     ori t1, zero, 0x10
-    sb t1, %lo(SerialData)(t0)      // 串口可读中断
+    sb t1, %lo(SerialStat)(t0)      // 串口可读中断
 #endif
 
 #ifdef ENABLE_INT
