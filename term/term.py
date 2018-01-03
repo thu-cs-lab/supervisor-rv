@@ -153,14 +153,13 @@ def run_G(addr):
     time_start = timer()
     inp.read(1)
     elapse = timer() - time_start
-    sec, msec = math.floor(elapse), (elapse - math.floor(elapse)) * 1e6
-    print('elapse time is %ds and %.2fms' % (sec, msec))
+    print('elapse time is %.3fs' % (elapse))
 
 
 
 def MainLoop():
     while True:
-        cmd = raw_input('>> ')
+        cmd = raw_input('>> ').upper()
         EmptyBuf()
         if cmd == 'A':
             addr = raw_input('>>addr: ')
@@ -198,7 +197,7 @@ def Main(welcome_message=True):
     #debug
     # welcome_message = False
     if welcome_message:
-        inp.read(33)
+        print inp.read(33)
     MainLoop()
 
 class tcp_wrapper:
@@ -276,14 +275,20 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description = 'Term for mips32 expirence.')
     parser.add_argument('-c', '--continued', action='store_true', help='Term will not wait for welcome if this flag is set')
-    parser.add_argument('-a', '--addr', default='127.0.0.1', help='IP address for communication')
-    parser.add_argument('-p', '--port', default='6666', help='Communication port')
+    parser.add_argument('-t', '--tcp', default=None, help='TCP server address:port for communication')
+    parser.add_argument('-s', '--serial', default=None, help='Serial port name')
     args = parser.parse_args()
-    para = args.addr + ':' + args.port
 
-    if not InitializeTCP(para):
-        # Initialize(para)
-        print 'Invalid address'
-        exit(0)
+    if args.tcp:
+        if not InitializeTCP(args.tcp):
+            print 'Failed to establish TCP connection'
+            exit(1)
+    elif args.serial:
+        if not Initialize(args.serial):
+            print 'Failed to open serial port'
+            exit(1)
+    else:
+        print 'Please specify communication method'
+        exit(1)
     Main(not args.continued)
 
