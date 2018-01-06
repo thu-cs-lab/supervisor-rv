@@ -88,6 +88,7 @@ def single_line_disassmble(binary_instr):
 
 
 def run_A(addr):
+    print("one instruction per line, empty line to end.")
     while True:
         line = raw_input('[0x%04x] ' % addr)
         if line.strip() == '':
@@ -118,6 +119,9 @@ def run_R():
 
 
 def run_D(addr, num):
+    if num % 4 != 0:
+        print("num % 4 should be zero")
+        return
     outp.write('D')
     outp.write(int_to_byte_string(addr))
     outp.write(int_to_byte_string(num))
@@ -149,35 +153,47 @@ def run_U(addr, num):
 def run_G(addr):
     outp.write('G')
     outp.write(int_to_byte_string(addr))
-    inp.read(1)
+    ret = inp.read(1)
+    if ret != '\x06':
+        print("start mark should be 0x06")
     time_start = timer()
-    inp.read(1)
+    while True:
+        ret = inp.read(1)
+        if ret == '\x07':
+            break
+        sys.stdout.write(ret)
+    print('') #just a new line
     elapse = timer() - time_start
-    print('elapse time is %.3fs' % (elapse))
+    print('elapsed time: %.3fs' % (elapse))
 
 
 
 def MainLoop():
     while True:
-        cmd = raw_input('>> ').upper()
+        try:
+            cmd = raw_input('>> ').upper()
+        except EOFError:
+            break
         EmptyBuf()
-        if cmd == 'A':
-            addr = raw_input('>>addr: ')
-            run_A(string.atoi(addr, 16))
-        if cmd == 'R':
-            run_R()
-        if cmd == 'D':
-            addr = raw_input('>>addr: ')
-            num = raw_input('>>num: ')
-            run_D(string.atoi(addr, 16), string.atoi(num))
-        if cmd == 'U':
-            addr = raw_input('>>addr: ')
-            num = raw_input('>>num: ')
-            run_U(string.atoi(addr, 16), string.atoi(num))
-        if cmd == 'G':
-            addr = raw_input('>>addr: ')
-            run_G(string.atoi(addr, 16))
-
+        try:
+            if cmd == 'A':
+                addr = raw_input('>>addr: 0x')
+                run_A(string.atoi(addr, 16))
+            if cmd == 'R':
+                run_R()
+            if cmd == 'D':
+                addr = raw_input('>>addr: 0x')
+                num = raw_input('>>num: ')
+                run_D(string.atoi(addr, 16), string.atoi(num))
+            if cmd == 'U':
+                addr = raw_input('>>addr: 0x')
+                num = raw_input('>>num: ')
+                run_U(string.atoi(addr, 16), string.atoi(num))
+            if cmd == 'G':
+                addr = raw_input('>>addr: 0x')
+                run_G(string.atoi(addr, 16))
+        except ValueError, e:
+            print(e)
 
 def Initialize(pipe_path='/tmp/acm'):
     '''''
