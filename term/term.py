@@ -87,6 +87,25 @@ def single_line_disassmble(binary_instr):
     return result
 
 
+def run_T(num):
+    if num < 0: #Print all entries
+        start = 0
+        entries = 16
+    else:
+        start = num
+        entries = 1
+    print("Index | ASID |  VAddr  |  PAddr  | C | D | V | G")
+    for i in range(start, start+entries):
+        outp.write('T')
+        outp.write(int_to_byte_string(i))
+        entry_hi = byte_string_to_int(inp.read(4))
+        entry_lo0 = byte_string_to_int(inp.read(4))
+        entry_lo1 = byte_string_to_int(inp.read(4))
+        print("  %x      %02x   %05x_000 %05x_000  %x   %x   %x   %x" %
+            (i, entry_hi&0xff, entry_hi>>12, entry_lo0>>6, entry_lo0>>3&7, entry_lo0>>2&1, entry_lo0>>1&1, entry_lo0&1))
+        print("              %05x_000 %05x_000  %x   %x   %x   %x" %
+            (                entry_hi>>12|1, entry_lo0>>6, entry_lo0>>3&7, entry_lo0>>2&1, entry_lo0>>1&1, entry_lo0&1))
+
 def run_A(addr):
     print("one instruction per line, empty line to end.")
     while True:
@@ -192,22 +211,19 @@ def MainLoop():
             if cmd == 'G':
                 addr = raw_input('>>addr: 0x')
                 run_G(string.atoi(addr, 16))
+            if cmd == 'T':
+                num = raw_input('>>num: ')
+                run_T(string.atoi(num))
         except ValueError, e:
             print(e)
 
-def Initialize(pipe_path='/tmp/acm'):
-    '''''
-        This Initialization is not correct.
-        Do not use it.
-    '''
-    # "in" and "out" are from QEMU's perspective
+def InitializeSerial(pipe_path):
     global outp, inp
-    # outp = open(pipe_path + '.in', 'r+', 0)
-    # inp = open(pipe_path + '.out', 'r+', 0)
-    tty = serial.Serial(port=pipe_path, baudrate=115200, rtscts=True, dsrdtr=True)
+    tty = serial.Serial(port=pipe_path, baudrate=115200)
+    tty.reset_input_buffer()
     inp = tty
     outp = tty
-
+    return True
 
 def Main(welcome_message=True):
     #debug
@@ -252,7 +268,7 @@ class tcp_wrapper:
             bytes_recd = bytes_recd + len(chunk)
         return ''.join(chunks)
 
-    def emptybuf(self):
+    def reset_input_buffer(self):
         local_input = [self.sock]
         while True:
             inputReady, o, e = select.select(local_input, [], [], 0.0)
@@ -262,7 +278,7 @@ class tcp_wrapper:
                 s.recv(1)
 
 def EmptyBuf():
-    inp.emptybuf()
+    inp.reset_input_buffer()
 
 def InitializeTCP(host_port):
     
@@ -300,7 +316,7 @@ if __name__ == "__main__":
             print 'Failed to establish TCP connection'
             exit(1)
     elif args.serial:
-        if not Initialize(args.serial):
+        if not InitializeSerial(args.serial):
             print 'Failed to open serial port'
             exit(1)
     else:
