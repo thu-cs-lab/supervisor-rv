@@ -36,7 +36,7 @@ endif
 
 .PHONY: all clean show-utest
 
-all: checkdirs $(TARGET)
+all: checkdirs $(TARGET) kernel.bin
 
 
 $(TARGET): $(OBJ) $(LDSCRIPT)
@@ -51,10 +51,14 @@ checkdirs: $(OBJDIR)
 $(OBJDIR):
 	test -d $@ || mkdir $@
 
+kernel.bin: $(TARGET)
+	@$(GCCPREFIX)objcopy -O binary -v $< kernel.bin
+	split -a 1 -b 4m kernel.bin kernel.bin.
+
 show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
-.PHONY: commits-num
+.PHONY: commits-num show-utest
 
 commits-num:
 	@git log --pretty=format:"commit %H" | grep -c 'commit'
