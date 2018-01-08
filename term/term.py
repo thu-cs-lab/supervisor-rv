@@ -12,6 +12,7 @@ import serial
 import select
 from timeit import default_timer as timer
 import math
+import readline
 import argparse
 
 CCPREFIX = "mips-sde-elf-"
@@ -190,7 +191,7 @@ def run_G(addr):
 def MainLoop():
     while True:
         try:
-            cmd = raw_input('>> ').upper()
+            cmd = raw_input('>> ').strip().upper()
         except EOFError:
             break
         EmptyBuf()
