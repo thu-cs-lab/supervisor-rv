@@ -1,22 +1,33 @@
 #!/usr/bin/python
 # -*- encoding=utf-8 -*-
 
-import sys
+import argparse
+import math
+import os
+import platform
 import re
+import select
 import socket
 import string
-import os
-import tempfile
 import subprocess
-import serial
-import select
+import sys
+import tempfile
 from timeit import default_timer as timer
-import math
-import readline
-import argparse
+try:
+    import serial
+except:
+    print("Please install pyserial")
+    exit(1)
+try:
+    import readline
+except:
+    pass
 
-CCPREFIX = "mips-sde-elf-"
-# CCPREFIX = 'mipsel-linux-gnu-'
+if platform.system()=='Windows':
+    CCPREFIX = "mips-mti-elf-"
+else:
+    CCPREFIX = "mips-sde-elf-"
+    # CCPREFIX = 'mipsel-linux-gnu-'
 
 Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
                 's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
@@ -199,25 +210,29 @@ def MainLoop():
             break
         EmptyBuf()
         try:
-            if cmd == 'A':
+            if cmd == 'Q':
+                break
+            elif cmd == 'A':
                 addr = raw_input('>>addr: 0x')
                 run_A(string.atoi(addr, 16))
-            if cmd == 'R':
+            elif cmd == 'R':
                 run_R()
-            if cmd == 'D':
+            elif cmd == 'D':
                 addr = raw_input('>>addr: 0x')
                 num = raw_input('>>num: ')
                 run_D(string.atoi(addr, 16), string.atoi(num))
-            if cmd == 'U':
+            elif cmd == 'U':
                 addr = raw_input('>>addr: 0x')
                 num = raw_input('>>num: ')
                 run_U(string.atoi(addr, 16), string.atoi(num))
-            if cmd == 'G':
+            elif cmd == 'G':
                 addr = raw_input('>>addr: 0x')
                 run_G(string.atoi(addr, 16))
-            if cmd == 'T':
+            elif cmd == 'T':
                 num = raw_input('>>num: ')
                 run_T(string.atoi(num))
+            else:
+                print("Invalid command")
         except ValueError, e:
             print(e)
 

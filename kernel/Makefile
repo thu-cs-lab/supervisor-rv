@@ -1,6 +1,12 @@
 RM	:= rm -f
+ifeq ($(OS),Windows_NT)
+# Windows Host
+GCCPREFIX	:= mips-mti-elf-
+else
 #GCCPREFIX	:= mipsel-linux-gnu-
 GCCPREFIX	:= mips-sde-elf-
+endif
+QEMU := qemu-system-mipsel
 LD	:= $(GCCPREFIX)ld
 CC	:= $(GCCPREFIX)gcc
 MODULE	:= init
@@ -58,7 +64,10 @@ kernel.bin: $(TARGET)
 show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
-.PHONY: commits-num show-utest
+.PHONY: commits-num show-utest sim clean
+
+sim: $(TARGET)
+	$(QEMU) -M mipssim -m 8M -kernel $< -vnc :0 -serial tcp::6666,server -s
 
 commits-num:
 	@git log --pretty=format:"commit %H" | grep -c 'commit'
