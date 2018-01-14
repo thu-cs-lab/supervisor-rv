@@ -58,8 +58,7 @@ $(OBJDIR):
 	test -d $@ || mkdir $@
 
 kernel.bin: $(TARGET)
-	@$(GCCPREFIX)objcopy -O binary -v $< kernel.bin
-	split -a 1 -b 4m kernel.bin kernel.bin.
+	@$(GCCPREFIX)objcopy -j .text -j .text.* -O binary -v $< kernel.bin
 
 show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'

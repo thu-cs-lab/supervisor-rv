@@ -6,12 +6,7 @@
     .set noreorder
     .set noat
 
-    .section .rodata
-    .p2align 2
-monitor_version:
-    .asciz "MONITOR for MIPS32 - initialized."
-
-    .section .data
+    .section .bss
     .p2align 2
     .global TCBT                    // thread control block table
 TCBT:
@@ -21,7 +16,7 @@ TCBT:
 current:
     .long 0
 #ifdef ENABLE_TLB                   // 声明页表
-    .section .data.ptes
+    .section .bss.ptes
     .global PTECODE
     .global PTESTACK
     .p2align 12                     // 每个两页，页对齐
@@ -42,12 +37,29 @@ PTESTACK:
 
     .text
     .p2align 2
-    .global START
+monitor_version:
+    .asciz "MONITOR for MIPS32 - initialized."
 
+
+    /* start address for the .bss section. defined in linker script */
+    .word   _sbss
+    /* end address for the .bss section. defined in linker script */
+    .word   _ebss
+    .global START
 START:                              // kernel init
+    lui k0, %hi(_sbss)
+    ori k0, %lo(_sbss)
+    lui k1, %hi(_ebss)
+    ori k1, %lo(_ebss)
+bss_init:
+    beq k0, k1, bss_init_done
     nop
+    sw  zero, 0(k0)
+    addiu k0, k0, 4
+    b   bss_init
     nop
-    nop
+
+bss_init_done:
 #ifdef ENABLE_INT
     mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
     nop

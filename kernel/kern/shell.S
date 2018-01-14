@@ -5,7 +5,7 @@
     .set noreorder
     .set noat
 
-    .section .data.uregs
+    .section .bss.uregs
     .p2align 2
     .global uregs
 uregs:

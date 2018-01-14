@@ -27,16 +27,16 @@ PROVIDE(USER_STACK_INIT = 0x807F0000);
 SECTIONS
 {
     . = 0x807F0000;
-    .data : {
-        *(.data.uregs)
+    .bss : {
+        _sbss = .;         /* define a global symbol at bss start */
+        *(.bss.uregs)
+        *(.bss)
+        *(.bss.ptes)
+        . = ALIGN(4);
+        _ebss = .;         /* define a global symbol at bss end */
     }
     .rodata : {
         *(.rodata)
-    }
-    .data : {
-        *(.data)
-        *(.bss)
-        *(.data.ptes)
     }
     PROVIDE(uregs_sp = uregs + (29 - 1) * 4);
     PROVIDE(uregs_fp = uregs + (30 - 1) * 4);
@@ -54,6 +54,7 @@ SECTIONS
     }
     .text : {
         *(.text)
+        . = ALIGN(0x1000); /* "fixed" utest address */
         *(.text.utest)
     }
 }
