@@ -76,7 +76,7 @@ bss_init_done:
     and t0, t0, t1                  // status Reg 的BEV位置零
     mtc0 t0, CP0_STATUS             // 中断处理转为正常模式
     ori t2, zero, PAGE_SIZE
-    mtc0 t2, CP0_PRID, 0x1          // 设定中断响应基址为0x8000.1000
+    mtc0 t2, CP0_EBASE              // 设定中断响应基址为0x8000.1000
     mfc0 t0, CP0_CAUSE
     lui t1, %hi(CAUSEF_IV)
     xor t1, t1, t0
