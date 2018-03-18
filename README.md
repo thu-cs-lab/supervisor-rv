@@ -237,3 +237,8 @@ Term 程序位于`term`文件夹中，可执行文件为`term.py`。对于本地
 
 - CPU采用的MIPS32指令集标准：MIPS32® Architecture For Programmers Volume II: The MIPS32® Instruction Set
 - MIPS32中断及TLB等特权态资源：MIPS32® Architecture For Programmers Volume III: The MIPS32® Privileged Resource Architecture
+
+##项目作者
+
+- 初始版本：韦毅龙，李成杰，孟子焯
+- 后续维护：张宇翔，董豪宇
