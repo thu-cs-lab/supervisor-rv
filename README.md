@@ -31,27 +31,27 @@ Kernel 运行后会先通过串口输出版本号，该功能可作为检验其�
 
 基础版本的 Kernel 共使用了21条不同的指令，它们是：
 
-1. `ADDIU 001001ssssstttttiiiiiiiiiiiiiiii`
-1. `ADDU 000000ssssstttttddddd00000100001`
-1. `AND 000000ssssstttttddddd00000100100`
-1. `ANDI 001100ssssstttttiiiiiiiiiiiiiiii`
-1. `BEQ 000100ssssstttttoooooooooooooooo`
-1. `BGTZ 000111sssss00000oooooooooooooooo`
-1. `BNE 000101ssssstttttoooooooooooooooo`
-1. `J 000010iiiiiiiiiiiiiiiiiiiiiiiiii`
-1. `JAL 000011iiiiiiiiiiiiiiiiiiiiiiiiii`
-1. `JR 000000sssss0000000000hhhhh001000`
-1. `LB 100000bbbbbtttttoooooooooooooooo`
-1. `LUI 00111100000tttttiiiiiiiiiiiiiiii`
-1. `LW 100011bbbbbtttttoooooooooooooooo`
-1. `OR 000000ssssstttttddddd00000100101`
-1. `ORI 001101ssssstttttiiiiiiiiiiiiiiii`
-1. `SB 101000bbbbbtttttoooooooooooooooo`
-1. `SLL 00000000000tttttdddddaaaaa000000`
-1. `SRL 00000000000tttttdddddaaaaa000010`
-1. `SW 101011bbbbbtttttoooooooooooooooo`
-1. `XOR 000000ssssstttttddddd00000100110`
-1. `XORI 001110ssssstttttiiiiiiiiiiiiiiii`
+1. `ADDIU` 001001ssssstttttiiiiiiiiiiiiiiii
+1. `ADDU` 000000ssssstttttddddd00000100001
+1. `AND` 000000ssssstttttddddd00000100100
+1. `ANDI` 001100ssssstttttiiiiiiiiiiiiiiii
+1. `BEQ` 000100ssssstttttoooooooooooooooo
+1. `BGTZ` 000111sssss00000oooooooooooooooo
+1. `BNE` 000101ssssstttttoooooooooooooooo
+1. `J` 000010iiiiiiiiiiiiiiiiiiiiiiiiii
+1. `JAL` 000011iiiiiiiiiiiiiiiiiiiiiiiiii
+1. `JR` 000000sssss0000000000hhhhh001000
+1. `LB` 100000bbbbbtttttoooooooooooooooo
+1. `LUI` 00111100000tttttiiiiiiiiiiiiiiii
+1. `LW` 100011bbbbbtttttoooooooooooooooo
+1. `OR` 000000ssssstttttddddd00000100101
+1. `ORI` 001101ssssstttttiiiiiiiiiiiiiiii
+1. `SB` 101000bbbbbtttttoooooooooooooooo
+1. `SLL` 00000000000tttttdddddaaaaa000000
+1. `SRL` 00000000000tttttdddddaaaaa000010
+1. `SW` 101011bbbbbtttttoooooooooooooooo
+1. `XOR` 000000ssssstttttddddd00000100110
+1. `XORI` 001110ssssstttttiiiiiiiiiiiiiiii
 
 根据 MIPS32 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
 
@@ -88,10 +88,10 @@ Kernel 的入口地址为 0x80000000，对应汇编代码`kern/init.S`中的 `ST
 
 为支持中断，CPU 要额外实现以下指令
 
-1. `ERET 01000010000000000000000000011000`
-1. `MFC0 01000000000tttttddddd00000000lll`
-1. `MTC0 01000000100tttttddddd00000000lll`
-1. `SYSCALL 000000cccccccccccccccccccc001100`
+1. `ERET` 01000010000000000000000000011000
+1. `MFC0` 01000000000tttttddddd00000000lll
+1. `MTC0` 01000000100tttttddddd00000000lll
+1. `SYSCALL` 000000cccccccccccccccccccc001100
 
 此外还需要实现 CP0 寄存器的这些字段：
 
@@ -122,10 +122,10 @@ CP0 寄存器字段功能定义参见 MIPS32 特权态规范（在参考文献�
 
 CPU 要额外实现以下指令
 
-1. `TLBP 01000010000000000000000000001000`
-1. `TLBR 01000010000000000000000000000001`
-1. `TLBWI 01000010000000000000000000000010`
-1. `TLBWR 01000010000000000000000000000110`
+1. `TLBP` 01000010000000000000000000001000
+1. `TLBR` 01000010000000000000000000000001
+1. `TLBWI` 01000010000000000000000000000010
+1. `TLBWR` 01000010000000000000000000000110
 
 
 此外还需要实现 CP0 寄存器：
@@ -156,7 +156,7 @@ kuseg的映射：
 
 初始化过程：
 
-1. 从config1获得TLB大小，初始化TLB
+1. 从Config1获得TLB大小，初始化TLB
 1. 设Context的PTEBase并填写页表
 1. PageMask设零（固定为4K页大小）
 1. 将用户栈指针设为 0x80000000
@@ -233,12 +233,12 @@ Term 程序位于`term`文件夹中，可执行文件为`term.py`。对于本地
 	jr $ra
 	nop
 
-##参考文献
+## 参考文献
 
 - CPU采用的MIPS32指令集标准：MIPS32® Architecture For Programmers Volume II: The MIPS32® Instruction Set
 - MIPS32中断及TLB等特权态资源：MIPS32® Architecture For Programmers Volume III: The MIPS32® Privileged Resource Architecture
 
-##项目作者
+## 项目作者
 
 - 初始版本：韦毅龙，李成杰，孟子焯
 - 后续维护：张宇翔，董豪宇
