@@ -4,7 +4,7 @@ ifeq ($(OS),Windows_NT)
 GCCPREFIX	:= mips-mti-elf-
 else
 #GCCPREFIX	:= mipsel-linux-gnu-
-GCCPREFIX	:= mips-sde-elf-
+GCCPREFIX	:= mips-mti-elf-
 endif
 QEMU := qemu-system-mipsel
 LD	:= $(GCCPREFIX)ld
