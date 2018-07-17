@@ -17,7 +17,7 @@ LDSCRIPT	:= kern/kernel.ld
 SRC	:= $(foreach sdir, $(SRCDIR), $(wildcard $(sdir)/*.S))
 OBJ	:= $(patsubst $(SRCDIR)/%.S, $(OBJDIR)/%.o, $(SRC))
 TARGET	:= kernel.elf
-ASFLAG	:= -D__ASSEMBLY__ -EL -g -mips32
+ASFLAG	:= -D__ASSEMBLY__ -EL -g -mips32r2 -mno-abicalls -mno-shared
 
 override ON_FPGA ?= n
 
