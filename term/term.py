@@ -236,9 +236,9 @@ def MainLoop():
         except ValueError, e:
             print(e)
 
-def InitializeSerial(pipe_path):
+def InitializeSerial(pipe_path, baudrate):
     global outp, inp
-    tty = serial.Serial(port=pipe_path, baudrate=115200)
+    tty = serial.Serial(port=pipe_path, baudrate=baudrate)
     tty.reset_input_buffer()
     inp = tty
     outp = tty
@@ -327,7 +327,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Term for mips32 expirence.')
     parser.add_argument('-c', '--continued', action='store_true', help='Term will not wait for welcome if this flag is set')
     parser.add_argument('-t', '--tcp', default=None, help='TCP server address:port for communication')
-    parser.add_argument('-s', '--serial', default=None, help='Serial port name')
+    parser.add_argument('-s', '--serial', default=None, help='Serial port name (e.g. /dev/ttyACM0, COM3)')
+    parser.add_argument('-b', '--baud', default=9600, help='Serial port baudrate (9600 by default)')
     args = parser.parse_args()
 
     if args.tcp:
@@ -335,11 +336,11 @@ if __name__ == "__main__":
             print 'Failed to establish TCP connection'
             exit(1)
     elif args.serial:
-        if not InitializeSerial(args.serial):
+        if not InitializeSerial(args.serial, args.baud):
             print 'Failed to open serial port'
             exit(1)
     else:
-        print 'Please specify communication method'
+        parser.print_help()
         exit(1)
     Main(not args.continued)
 
