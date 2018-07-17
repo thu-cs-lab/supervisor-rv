@@ -26,8 +26,7 @@ except:
 if platform.system()=='Windows':
     CCPREFIX = "mips-mti-elf-"
 else:
-    CCPREFIX = "mips-sde-elf-"
-    # CCPREFIX = 'mipsel-linux-gnu-'
+    CCPREFIX = 'mipsel-linux-gnu-'
 
 Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
                 's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
@@ -187,19 +186,27 @@ def run_U(addr, num):
 def run_G(addr):
     outp.write('G')
     outp.write(int_to_byte_string(addr))
-    ret = inp.read(1)
-    if ret != '\x06':
-        print("start mark should be 0x06")
-    time_start = timer()
-    while True:
+    class TrapError(Exception):
+        pass
+    try:
         ret = inp.read(1)
-        if ret == '\x07':
-            break
-        sys.stdout.write(ret)
-    print('') #just a new line
-    elapse = timer() - time_start
-    print('elapsed time: %.3fs' % (elapse))
-
+        if ret == '\x80':
+            raise TrapError()
+        if ret != '\x06':
+            print("start mark should be 0x06")
+        time_start = timer()
+        while True:
+            ret = inp.read(1)
+            if ret == '\x07':
+                break
+            elif ret == '\x80':
+                raise TrapError()
+            sys.stdout.write(ret)
+        print('') #just a new line
+        elapse = timer() - time_start
+        print('elapsed time: %.3fs' % (elapse))
+    except TrapError:
+        print('supervisor reported an exception during execution')
 
 
 def MainLoop():
