@@ -1,5 +1,7 @@
 # supervisor-32： 32位监控程序
 
+[![Build Status](https://travis-ci.org/z4yx/supervisor-mips32.svg?branch=master)](https://travis-ci.org/z4yx/supervisor-mips32)
+
 ## 介绍
 
 Thinpad 教学计算机搭配了监控程序，能够接受用户命令，支持输入汇编指令并运行，查看寄存器及内存状态等功能。监控程序可在学生实现的 32 位 MIPS CPU 上运行，一方面可以帮助学生理解、掌握 MIPS 指令系统及其软件开发，另一方面可以作为验证学生 CPU 功能正确性的标准。
