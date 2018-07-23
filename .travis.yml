@@ -1,10 +1,12 @@
 language: c
 before_install:
-  - sudo apt-get install -y gcc-mipsel-linux-gnu
+  - wget --no-check-certificate -O gcc.tgz 'https://www.mips.com/?do-download=linux-x64-mti-bare-metal-2016-05-06'
+  - tar -xf gcc.tgz
+
 script:
-  - make GCCPREFIX=mipsel-linux-gnu- -C kernel/ clean all
-  - make GCCPREFIX=mipsel-linux-gnu- EN_INT=y -C kernel/ clean all
-  - make GCCPREFIX=mipsel-linux-gnu- EN_INT=y EN_TLB=y -C kernel/ clean all
+  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- -C kernel/ clean all
+  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- EN_INT=y -C kernel/ clean all
+  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- EN_INT=y EN_TLB=y -C kernel/ clean all
 
 addons:
   apt:
