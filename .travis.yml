@@ -1,0 +1,11 @@
+language: c
+before_install:
+  - sudo apt-get install -y gcc-mipsel-linux-gnu
+script:
+  - make GCCPREFIX=mipsel-linux-gnu- -C kernel/ clean all
+  - make GCCPREFIX=mipsel-linux-gnu- EN_INT=y -C kernel/ clean all
+  - make GCCPREFIX=mipsel-linux-gnu- EN_INT=y EN_TLB=y -C kernel/ clean all
+
+addons:
+  apt:
+    update: true
