@@ -1,8 +1,6 @@
 language: c
-sudo: false
 before_install:
-  # - wget --no-check-certificate -O gcc.tgz 'https://www.mips.com/?do-download=linux-x64-mti-bare-metal-2016-05-06'
-  - wget --no-check-certificate -O gcc.tgz 'https://drive.google.com/uc?export=download&id=1Mo5hGcCg1zm8Ca0KQB-G5PNI3fXfAAmR'
+  - wget --no-check-certificate -O gcc.tgz 'https://www.mips.com/?do-download=linux-x64-mti-bare-metal-2016-05-06'
   - tar -xf gcc.tgz
 
 script:
