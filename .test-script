@@ -1,0 +1,61 @@
+#!/usr/bin/expect
+
+set timeout 5
+spawn term/term.py -t 127.0.0.1:6666
+
+expect "MONITOR for MIPS32 - initialized." {} timeout {exit 1}
+
+expect ">>"
+send "R\n"
+
+expect ">>"
+send "R\n"
+
+expect ">>"
+send "A\n"
+send "80100000\n"
+expect "one instruction per line"
+expect "]"
+send "addiu \$2,\$0,1\n"
+expect "]"
+send "addu \$3,\$2,\$2\n"
+expect "]"
+send "jr \$31\n"
+expect "]"
+send "nop\n"
+expect "]"
+send "\n"
+
+expect ">>"
+send "D\n"
+send "80100000\n"
+send "16\n"
+expect -re "0x80100000: +0x24020001" {} timeout {exit 1}
+
+expect ">>"
+send "G\n"
+send "80100000\n"
+expect "elapsed time" {} timeout {exit 1}
+
+expect ">>"
+send "R\n"
+expect -re "R3.+0x00000002"  {} timeout {exit 1}
+
+# TLB required
+expect ">>"
+send "G\n"
+send "0\n"
+expect "elapsed time" {} timeout {exit 1}
+
+expect ">>"
+send "T\n"
+send " -1\n"
+expect -re "00000_000 +00100_000 +0 +1 +1 +1"  {} timeout {exit 1}
+
+expect ">>"
+send "D\n"
+send "0\n"
+send "16\n"
+expect -re "0x00000000: +0x24020001" {} timeout {exit 1}
+
+expect ">>"
