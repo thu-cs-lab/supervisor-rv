@@ -12,7 +12,7 @@
 SCHEDULE:                           
 #ifdef ENABLE_INT                             
     lui t1, %hi(TCBT)               // 调度程序。此时处于中断处理中。
-    ori t1, t1, %lo(TCBT)           // 获得TCBT地址
+    addiu t1, %lo(TCBT)           // 获得TCBT地址
     lw t2, 0(t1)                    // 获得idle的TCB地址
     lui t4, %hi(current)
     lw t3, %lo(current)(t4)         // 获得current线程的TCB地址

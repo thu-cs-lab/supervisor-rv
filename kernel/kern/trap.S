@@ -28,7 +28,7 @@ FATAL:
     jal WRITESERIAL                 // 发送
     nop
     lui v0, %hi(START)              // 重启地址
-    ori v0, v0, %lo(START)
+    addiu v0, %lo(START)
     jr v0
     nop
 

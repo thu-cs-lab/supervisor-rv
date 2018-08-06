@@ -9,14 +9,14 @@
     .section .text.init
 INITLOCATE:                         // 定位启动程序
     lui k0, %hi(START)
-    ori k0, %lo(START)
+    addiu k0, %lo(START)
     jr k0
     nop
 
     .section .text.ebase180
 EHANDLERLOCATE:                     // 定位普通中断处理程序
     lui k0, %hi(EXCEPTIONHANDLER)
-    ori k0, %lo(EXCEPTIONHANDLER)
+    addiu k0, %lo(EXCEPTIONHANDLER)
     jr k0
     nop
 
