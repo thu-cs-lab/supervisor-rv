@@ -1,6 +1,6 @@
 language: c
 before_install:
-  - sudo apt-get install -yy qemu-system-mips
+  - sudo apt-get install -yy qemu-system-mips expect
   - wget --no-check-certificate -O gcc.tgz 'https://www.mips.com/?do-download=linux-x64-mti-bare-metal-2016-05-06'
   - tar -xf gcc.tgz
 
