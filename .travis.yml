@@ -5,13 +5,14 @@ before_install:
   - tar -xf gcc.tgz
 
 script:
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y -C kernel/ clean all
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y EN_INT=y -C kernel/ clean all
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y EN_INT=y EN_TLB=y -C kernel/ clean all
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=n -C kernel/ clean all
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=n EN_INT=y -C kernel/ clean all
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=n EN_INT=y EN_TLB=y -C kernel/ clean all
-  - timeout 2s make sim -C kernel || true &
+  - "export PATH=$PATH:$PWD/mips-mti-elf/2016.05-06/bin"
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y EN_TLB=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y EN_TLB=y -C kernel/ clean all
+  - travis_wait 1 make sim -C kernel || true
   - ./.test-script
 
 addons:
