@@ -106,10 +106,6 @@ RETURNFRMTRAP:
     lw k1, TF_EPC(sp)
     mtc0 k0, CP0_STATUS
     mtc0 k1, CP0_EPC
-    lw k1, TF_CAUSE(sp)
-    xori k0, k1, 0xFF00
-    and k1, k1, k0                  // 清除IP位不要错误引发中断
-    mtc0 k1, CP0_CAUSE
     lw AT, TF_AT(sp)                // 从中断帧中恢复k0,k1以外寄存器，上下文
     lw v0, TF_v0(sp)
     lw v1, TF_v1(sp)
