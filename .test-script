@@ -33,6 +33,11 @@ send "16\n"
 expect -re "0x80100000: +0x24020001" {} timeout {exit 1}
 
 expect ">>"
+send "U\n"
+send "80100000\n"
+send "16\n"
+
+expect ">>"
 send "G\n"
 send "80100000\n"
 expect "elapsed time" {} timeout {exit 1}
@@ -59,3 +64,4 @@ send "16\n"
 expect -re "0x00000000: +0x24020001" {} timeout {exit 1}
 
 expect ">>"
+send "Q\n"

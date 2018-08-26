@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding=utf-8 -*-
 
 import argparse
@@ -9,6 +9,7 @@ import re
 import select
 import socket
 import string
+import struct
 import subprocess
 import sys
 import tempfile
@@ -22,18 +23,22 @@ try:
     import readline
 except:
     pass
+try: type(raw_input)
+except NameError: raw_input = input
 
 CCPREFIX = "mips-mti-elf-"
+if 'GCCPREFIX' in os.environ:
+    CCPREFIX=os.environ['GCCPREFIX']
 
 Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
                 's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
 
 # convert 32-bit int to byte string of length 4, from LSB to MSB
 def int_to_byte_string(val):
-    return ''.join([chr((val >> (8 * k)) & 0xFF) for k in xrange(4)])
+    return struct.pack('<I', val)
 
 def byte_string_to_int(val):
-    return int(''.join(map(lambda c: '%02x' % ord(c), list(reversed(val)))), 16)
+    return struct.unpack('<I', val)[0]
 
 # invoke assembler to encode single instruction (in little endian MIPS32)
 # returns a byte string of encoded instruction, from lowest byte to highest byte
@@ -44,7 +49,7 @@ def single_line_asm(instr):
     tmp_binary = tempfile.NamedTemporaryFile(delete=False)
 
     try:
-        tmp_asm.write(instr + "\n")
+        tmp_asm.write((instr + "\n").encode('utf-8'))
         tmp_asm.close()
         tmp_obj.close()
         tmp_binary.close()
@@ -52,19 +57,19 @@ def single_line_asm(instr):
             CCPREFIX + 'as', '-EL', '-mips32r2', tmp_asm.name, '-o', tmp_obj.name])
         subprocess.check_call([
             CCPREFIX + 'objcopy', '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
-        with open(tmp_binary.name, 'r') as f:
+        with open(tmp_binary.name, 'rb') as f:
             binary = f.read()
-            if len(binary) == 8 and binary[4:] == '\0' * 4:
+            if len(binary) > 4:
                 binary = binary[:4]
-            assert len(binary) == 4, \
-                "the result does not contains exactly one instruction, " + \
-                "%d instruction found" % (len(binary) / 4)
+            # assert len(binary) == 4, \
+            #     "the result does not contains exactly one instruction, " + \
+            #     "%d instruction found" % (len(binary) / 4)
             return binary
     except subprocess.CalledProcessError as e:
         print(e.output)
         return ''
     except AssertionError as e:
-        print(e.message)
+        print(e)
         return ''
     finally:
         os.remove(tmp_asm.name)
@@ -88,11 +93,11 @@ def single_line_disassmble(binary_instr):
         '-m', 'mips:isa32r2', tmp_binary.name])
     # the last line should be something like:
     #    0:   21107f00        addu    v0,v1,ra
-    result = raw_output.strip().split('\n')[-1].split(None, 2)[-1]
+    result = raw_output.strip().split(b'\n')[-1].split(None, 2)[-1]
 
     os.remove(tmp_binary.name)
 
-    return result
+    return result.decode('utf-8')
 
 
 def run_T(num):
@@ -104,7 +109,7 @@ def run_T(num):
         entries = 1
     print("Index | ASID |  VAddr  |  PAddr  | C | D | V | G")
     for i in range(start, start+entries):
-        outp.write('T')
+        outp.write(b'T')
         outp.write(int_to_byte_string(i))
         entry_hi = byte_string_to_int(inp.read(4))
         entry_lo0 = byte_string_to_int(inp.read(4))
@@ -129,7 +134,7 @@ def run_A(addr):
             instr = single_line_asm(line)
             if instr == '':
                 continue
-        outp.write('A')
+        outp.write(b'A')
         outp.write(int_to_byte_string(addr))
         outp.write(int_to_byte_string(4))
         outp.write(instr)
@@ -137,8 +142,8 @@ def run_A(addr):
 
 
 def run_R():
-    outp.write('R')
-    for i in xrange(1, 31):
+    outp.write(b'R')
+    for i in range(1, 31):
         val_raw = inp.read(4)
         val = byte_string_to_int(val_raw)
         print('R{0}{1:7} = 0x{2:0>8x}'.format(
@@ -152,7 +157,7 @@ def run_D(addr, num):
     if num % 4 != 0:
         print("num % 4 should be zero")
         return
-    outp.write('D')
+    outp.write(b'D')
     outp.write(int_to_byte_string(addr))
     outp.write(int_to_byte_string(num))
     counter = 0
@@ -160,8 +165,7 @@ def run_D(addr, num):
         val_raw = inp.read(4)
         counter = counter + 4
         val = byte_string_to_int(val_raw)
-        print('0x%08x: ' % addr),
-        print('0x%08x  ' % (val))
+        print('0x%08x: 0x%08x' % (addr,val))
         addr = addr + 4
 
 
@@ -169,36 +173,35 @@ def run_U(addr, num):
     if num % 4 != 0:
         print("num % 4 should be zero")
         return
-    outp.write('D')
+    outp.write(b'D')
     outp.write(int_to_byte_string(addr))
     outp.write(int_to_byte_string(num))
     counter = 0
     while counter < num:
         val_raw = inp.read(4)
-        print('0x%08x: ' % addr),
-        print(single_line_disassmble(val_raw))
+        print('0x%08x: %s' % (addr,single_line_disassmble(val_raw)))
         counter = counter + 4
         addr = addr + 4
 
 def run_G(addr):
-    outp.write('G')
+    outp.write(b'G')
     outp.write(int_to_byte_string(addr))
     class TrapError(Exception):
         pass
     try:
         ret = inp.read(1)
-        if ret == '\x80':
+        if ret == b'\x80':
             raise TrapError()
-        if ret != '\x06':
+        if ret != b'\x06':
             print("start mark should be 0x06")
         time_start = timer()
         while True:
             ret = inp.read(1)
-            if ret == '\x07':
+            if ret == b'\x07':
                 break
-            elif ret == '\x80':
+            elif ret == b'\x80':
                 raise TrapError()
-            sys.stdout.write(ret)
+            sys.stdout.buffer.write(ret)
         print('') #just a new line
         elapse = timer() - time_start
         print('elapsed time: %.3fs' % (elapse))
@@ -218,26 +221,26 @@ def MainLoop():
                 break
             elif cmd == 'A':
                 addr = raw_input('>>addr: 0x')
-                run_A(string.atoi(addr, 16))
+                run_A(int(addr, 16))
             elif cmd == 'R':
                 run_R()
             elif cmd == 'D':
                 addr = raw_input('>>addr: 0x')
                 num = raw_input('>>num: ')
-                run_D(string.atoi(addr, 16), string.atoi(num))
+                run_D(int(addr, 16), int(num))
             elif cmd == 'U':
                 addr = raw_input('>>addr: 0x')
                 num = raw_input('>>num: ')
-                run_U(string.atoi(addr, 16), string.atoi(num))
+                run_U(int(addr, 16), int(num))
             elif cmd == 'G':
                 addr = raw_input('>>addr: 0x')
-                run_G(string.atoi(addr, 16))
+                run_G(int(addr, 16))
             elif cmd == 'T':
                 num = raw_input('>>num: ')
-                run_T(string.atoi(num))
+                run_T(int(num))
             else:
                 print("Invalid command")
-        except ValueError, e:
+        except ValueError as e:
             print(e)
 
 def InitializeSerial(pipe_path, baudrate):
@@ -252,7 +255,7 @@ def Main(welcome_message=True):
     #debug
     # welcome_message = False
     if welcome_message:
-        print inp.read(33)
+        print(inp.read(33))
     MainLoop()
 
 class tcp_wrapper:
@@ -285,11 +288,11 @@ class tcp_wrapper:
         while bytes_recd < MSGLEN:
             chunk = self.sock.recv(min(MSGLEN - bytes_recd, 2048))
             # print 'read:...', list(map(lambda c: hex(ord(c)), chunk))
-            if chunk == '':
+            if chunk == b'':
                 raise RuntimeError("socket connection broken")
             chunks.append(chunk)
             bytes_recd = bytes_recd + len(chunk)
-        return ''.join(chunks)
+        return b''.join(chunks)
 
     def reset_input_buffer(self):
         local_input = [self.sock]
@@ -316,9 +319,10 @@ def InitializeTCP(host_port):
     groups = match.groups()
     ser = tcp_wrapper()
     host, port = groups[0], groups[4]
-    print "connecting to %s:%s..." % (host, port) ,
+    sys.stdout.write("connecting to %s:%s..." % (host, port))
+    sys.stdout.flush()
     ser.connect(host, int(port))
-    print "connected"
+    print("connected")
 
     global outp, inp
     outp = ser
@@ -337,11 +341,11 @@ if __name__ == "__main__":
 
     if args.tcp:
         if not InitializeTCP(args.tcp):
-            print 'Failed to establish TCP connection'
+            print('Failed to establish TCP connection')
             exit(1)
     elif args.serial:
         if not InitializeSerial(args.serial, args.baud):
-            print 'Failed to open serial port'
+            print('Failed to open serial port')
             exit(1)
     else:
         parser.print_help()
