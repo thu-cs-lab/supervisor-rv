@@ -1,8 +1,10 @@
 language: c
 before_install:
   - sudo apt-get install -yy qemu-system-mips expect
-  - wget --no-check-certificate -O gcc.tgz 'https://www.mips.com/?do-download=linux-x64-mti-bare-metal-2016-05-06'
-  - tar -xf gcc.tgz
+  - curl -sc /tmp/gcokie 'https://drive.google.com/uc?export=download&id=1Mo5hGcCg1zm8Ca0KQB-G5PNI3fXfAAmR'
+  - getcode="$(awk '/_warning_/ {print $NF}' /tmp/gcokie)"
+  - curl -s -C - -LOJb /tmp/gcokie "https://drive.google.com/uc?export=download&confirm=${getcode}&id=1Mo5hGcCg1zm8Ca0KQB-G5PNI3fXfAAmR"
+  - tar -xf Codescape.GNU.Tools.Package.2016.05-06.for.MIPS.MTI.Bare.Metal.CentOS-5.x86_64.tar.gz
 
 script:
   - "export PATH=$PATH:$PWD/mips-mti-elf/2016.05-06/bin"
