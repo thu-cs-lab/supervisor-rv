@@ -185,11 +185,11 @@ Term 程序运行在实验者的电脑上，提供监控程序和人交互的界
 
 Term 程序位于`term`文件夹中，可执行文件为`term.py`。对于本地的 Thinpad，运行程序时用 -s 选项指定串口。例如：
 
-`./term.py -s COM3` 或者 `./term.py -s /dev/ttyACM0`（串口名称根据实际情况修改）
+`python term.py -s COM3` 或者 `python term.py -s /dev/ttyACM0`（串口名称根据实际情况修改）
 
 连接远程实验平台的 Thinpad，或者 QEMU 模拟器时，使用 -t 选项指定 IP 和端口。例如：
 
-`./term.py -t 127.0.0.1:6666`
+`python term.py -t 127.0.0.1:6666`
 
 ### 测试程序
 
