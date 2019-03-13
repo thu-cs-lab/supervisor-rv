@@ -26,7 +26,7 @@ except:
 try: type(raw_input)
 except NameError: raw_input = input
 
-CCPREFIX = "mips-img-elf-"
+CCPREFIX = "mips-mti-elf-"
 if 'GCCPREFIX' in os.environ:
     CCPREFIX=os.environ['GCCPREFIX']
 
@@ -255,7 +255,8 @@ def Main(welcome_message=True):
     #debug
     # welcome_message = False
     if welcome_message:
-        print(inp.read(33))
+        sys.stdout.write(inp.read(33))
+        print('')
     MainLoop()
 
 class tcp_wrapper:
