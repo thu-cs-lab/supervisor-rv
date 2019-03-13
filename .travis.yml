@@ -5,18 +5,36 @@ before_install:
   - getcode="$(awk '/_warning_/ {print $NF}' /tmp/gcokie)"
   - curl -s -C - -LOJb /tmp/gcokie "https://drive.google.com/uc?export=download&confirm=${getcode}&id=1Mo5hGcCg1zm8Ca0KQB-G5PNI3fXfAAmR"
   - tar -xf Codescape.GNU.Tools.Package.2016.05-06.for.MIPS.MTI.Bare.Metal.CentOS-5.x86_64.tar.gz
-
 script:
-  - "export PATH=$PATH:$PWD/mips-mti-elf/2016.05-06/bin"
+  - export PATH=$PATH:$PWD/mips-mti-elf/2016.05-06/bin
   - make GCCPREFIX=mips-mti-elf- ON_FPGA=y -C kernel/ clean all
+  - cp kernel/kernel.bin kernel/kernel-fpga.bin
   - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y -C kernel/ clean all
+  - cp kernel/kernel.bin kernel/kernel-fpga-int.bin
   - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y EN_TLB=y -C kernel/ clean all
+  - cp kernel/kernel.bin kernel/kernel-fpga-int-tlb.bin
   - make GCCPREFIX=mips-mti-elf- ON_FPGA=n -C kernel/ clean all
+  - cp kernel/kernel.bin kernel/kernel-qemu.bin
   - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y -C kernel/ clean all
+  - cp kernel/kernel.bin kernel/kernel-qemu-int.bin
   - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y EN_TLB=y -C kernel/ clean all
+  - cp kernel/kernel.bin kernel/kernel-qemu-int-tlb.bin
   - travis_wait 1 make sim -C kernel || true
-  - ./.test-script
-
+  - "./.test-script"
 addons:
   apt:
     update: true
+deploy:
+  provider: releases
+  api_key:
+    secure: k2RlREPP/zhjwpfkqn6jxmttY4ti6Y+lyMACgDSKhN4+Vr4sMwmQJr/no6kEfORqt84+CWcSdy9jtRPbApXPB0TwPn0wFzeArDcBBS7AWu9RD9gq9Y/rx6TUrQUhZd4WsUIwx5of2u5HVrimnEvsrvWLprwhMs9hGkdDSupXp8lPkSNiYPUFHSq9RVwLz+xmb2jv3tesp4kxGBRAtnr3WpFh+aPOMsMz7XtjiD3PDt5bY3l3pc/MzvsuG7/Ed3sfFDVGwMhytsmggD+AlyEqbCIUkMA/oOcdgbV5XQTbmoVBMjdReHoa9bW86pQV/khmpthscs0vlhfeECbRic6V7fKuzDJMwHvZ6SgdDVTP+eu19OffGrinpDSPm5If6Lw/EVcKzAabPuEpSDHYBYJQjko5cCcg6nHFGvegdRDaMHTDR5QLwWUci++Yupw9GwaLtjBEda4/UdUnZGjC4XbcjV5atpiu9GV+hbrAQdT/eqjJ32mGd9QCWP28TDU9/B4VFKDYAEstQ9aLnuz0+EtT7xiiQx7Ici5V2LRCl3BN/Y6ZvZPJeuHEsjhaQXaPrQrkh8LORME9KCQMIEJjLsN7XIgvBlfrgR8UwHQiOtDS6gqMt0fqNbepYEIn3J0m06qdK3wU4uPysScXqFBnwHtpnXTLQc/oGnhpCsk7YKIzr6U=
+  file:
+    - kernel/kernel-fpga.bin
+    - kernel/kernel-fpga-int.bin
+    - kernel/kernel-fpga-int-tlb.bin
+    - kernel/kernel-qemu.bin
+    - kernel/kernel-qemu-int.bin
+    - kernel/kernel-qemu-int-tlb.bin
+  on:
+    repo: z4yx/supervisor-mips32
+    tags: true
