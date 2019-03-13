@@ -28,6 +28,7 @@ deploy:
   provider: releases
   api_key:
     secure: k2RlREPP/zhjwpfkqn6jxmttY4ti6Y+lyMACgDSKhN4+Vr4sMwmQJr/no6kEfORqt84+CWcSdy9jtRPbApXPB0TwPn0wFzeArDcBBS7AWu9RD9gq9Y/rx6TUrQUhZd4WsUIwx5of2u5HVrimnEvsrvWLprwhMs9hGkdDSupXp8lPkSNiYPUFHSq9RVwLz+xmb2jv3tesp4kxGBRAtnr3WpFh+aPOMsMz7XtjiD3PDt5bY3l3pc/MzvsuG7/Ed3sfFDVGwMhytsmggD+AlyEqbCIUkMA/oOcdgbV5XQTbmoVBMjdReHoa9bW86pQV/khmpthscs0vlhfeECbRic6V7fKuzDJMwHvZ6SgdDVTP+eu19OffGrinpDSPm5If6Lw/EVcKzAabPuEpSDHYBYJQjko5cCcg6nHFGvegdRDaMHTDR5QLwWUci++Yupw9GwaLtjBEda4/UdUnZGjC4XbcjV5atpiu9GV+hbrAQdT/eqjJ32mGd9QCWP28TDU9/B4VFKDYAEstQ9aLnuz0+EtT7xiiQx7Ici5V2LRCl3BN/Y6ZvZPJeuHEsjhaQXaPrQrkh8LORME9KCQMIEJjLsN7XIgvBlfrgR8UwHQiOtDS6gqMt0fqNbepYEIn3J0m06qdK3wU4uPysScXqFBnwHtpnXTLQc/oGnhpCsk7YKIzr6U=
+  skip_cleanup: true
   file:
     - kernel/kernel-fpga.bin
     - kernel/kernel-fpga-int.bin
