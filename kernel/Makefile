@@ -42,10 +42,10 @@ endif
 
 .PHONY: all clean show-utest
 
-all: checkdirs $(TARGET) kernel.bin
+all: $(TARGET) kernel.bin
 
 
-$(TARGET): $(OBJ) $(LDSCRIPT)
+$(TARGET): checkdirs $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
 
 $(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S
