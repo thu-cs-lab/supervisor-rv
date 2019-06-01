@@ -39,16 +39,20 @@ ifeq ($(EN_TLB), y)
 	ASFLAG += -DENABLE_TLB
 endif
 
+CONFIG_FILE := .config_$(ON_FPGA)_$(EN_INT)_$(EN_TLB)
 
 .PHONY: all clean show-utest
 
 all: $(TARGET) kernel.bin
 
+$(CONFIG_FILE):
+	@rm -f .config_*
+	touch $@
 
 $(TARGET): checkdirs $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
 
-$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S
+$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S $(CONFIG_FILE)
 	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAG)
 
 
