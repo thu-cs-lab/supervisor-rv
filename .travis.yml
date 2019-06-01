@@ -1,6 +1,7 @@
 language: c
 before_install:
-  - sudo apt-get install -yy qemu-system-mips expect
+  - sudo apt-get install -yy qemu-system-mips expect python3-pip
+  - sudo pip3 install pyserial
   - curl -sc /tmp/gcokie 'https://drive.google.com/uc?export=download&id=1Mo5hGcCg1zm8Ca0KQB-G5PNI3fXfAAmR'
   - getcode="$(awk '/_warning_/ {print $NF}' /tmp/gcokie)"
   - curl -s -C - -LOJb /tmp/gcokie "https://drive.google.com/uc?export=download&confirm=${getcode}&id=1Mo5hGcCg1zm8Ca0KQB-G5PNI3fXfAAmR"
