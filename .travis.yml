@@ -7,17 +7,17 @@ before_install:
   - tar -xf Codescape.GNU.Tools.Package.2016.05-06.for.MIPS.MTI.Bare.Metal.CentOS-5.x86_64.tar.gz
 script:
   - export PATH=$PATH:$PWD/mips-mti-elf/2016.05-06/bin
-  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y -C kernel/
   - cp kernel/kernel.bin kernel/kernel-fpga.bin
-  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y -C kernel/
   - cp kernel/kernel.bin kernel/kernel-fpga-int.bin
-  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y EN_TLB=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=y EN_INT=y EN_TLB=y -C kernel/
   - cp kernel/kernel.bin kernel/kernel-fpga-int-tlb.bin
-  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n -C kernel/
   - cp kernel/kernel.bin kernel/kernel-qemu.bin
-  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y -C kernel/
   - cp kernel/kernel.bin kernel/kernel-qemu-int.bin
-  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y EN_TLB=y -C kernel/ clean all
+  - make GCCPREFIX=mips-mti-elf- ON_FPGA=n EN_INT=y EN_TLB=y -C kernel/
   - cp kernel/kernel.bin kernel/kernel-qemu-int-tlb.bin
   - travis_wait 1 make sim -C kernel || true
   - "./.test-script"
