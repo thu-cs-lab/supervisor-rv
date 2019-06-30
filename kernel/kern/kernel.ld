@@ -1,4 +1,4 @@
-ENTRY(START)
+ENTRY(INITLOCATE)
 OUTPUT("kernel.elf")
 OUTPUT_ARCH("mips:isa32r2")
 OUTPUT_FORMAT("elf32-tradlittlemips")
