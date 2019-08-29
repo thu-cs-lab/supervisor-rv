@@ -88,7 +88,7 @@ def single_line_asm(instr):
 # accepts encoded instruction (exactly 4 bytes), from least significant byte
 # objdump does not seem to report errors so this function does not guarantee
 # to produce meaningful result
-def single_line_disassmble(binary_instr):
+def single_line_disassmble(binary_instr, addr):
     assert(len(binary_instr) == 4)
     tmp_binary = tempfile.NamedTemporaryFile(delete=False)
     tmp_binary.write(binary_instr)
@@ -96,6 +96,7 @@ def single_line_disassmble(binary_instr):
 
     raw_output = subprocess.check_output([
         CCPREFIX + 'objdump', '-D', '-b', 'binary',
+        '--adjust-vma=' + str(addr),
         '-m', 'mips:isa32r2', tmp_binary.name])
     # the last line should be something like:
     #    0:   21107f00        addu    v0,v1,ra
@@ -185,7 +186,7 @@ def run_U(addr, num):
     counter = 0
     while counter < num:
         val_raw = inp.read(4)
-        print('0x%08x: %s' % (addr,single_line_disassmble(val_raw)))
+        print('0x%08x: %s' % (addr,single_line_disassmble(val_raw, addr)))
         counter = counter + 4
         addr = addr + 4
 
