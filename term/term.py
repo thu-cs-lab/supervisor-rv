@@ -29,9 +29,25 @@ except NameError: raw_input = input
 CCPREFIX = "mips-mti-elf-"
 if 'GCCPREFIX' in os.environ:
     CCPREFIX=os.environ['GCCPREFIX']
+CMD_ASSEMBLER = CCPREFIX + 'as'
+CMD_DISASSEMBLER = CCPREFIX + 'objdump'
+CMD_BINARY_COPY = CCPREFIX + 'objcopy'
 
 Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
                 's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
+
+def test_programs():
+    tmp = tempfile.NamedTemporaryFile()
+    for prog in [CMD_ASSEMBLER, CMD_DISASSEMBLER, CMD_BINARY_COPY]:
+        try:
+            subprocess.check_call([prog, '--version'], stdout=tmp)
+        except:
+            print("Couldn't run", prog)
+            print("Please check your PATH env", os.environ["PATH"].split(os.pathsep))
+            tmp.close()
+            return False
+    tmp.close()
+    return True
 
 def output_binary(binary):
     if hasattr(sys.stdout,'buffer'): # Python 3
@@ -60,9 +76,9 @@ def single_line_asm(instr):
         tmp_obj.close()
         tmp_binary.close()
         subprocess.check_output([
-            CCPREFIX + 'as', '-EL', '-mips32r2', tmp_asm.name, '-o', tmp_obj.name])
+            CMD_ASSEMBLER, '-EL', '-mips32r2', tmp_asm.name, '-o', tmp_obj.name])
         subprocess.check_call([
-            CCPREFIX + 'objcopy', '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
+            CMD_BINARY_COPY, '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
         with open(tmp_binary.name, 'rb') as f:
             binary = f.read()
             if len(binary) > 4:
@@ -73,16 +89,15 @@ def single_line_asm(instr):
             return binary
     except subprocess.CalledProcessError as e:
         print(e.output)
-        return ''
-    except AssertionError as e:
-        print(e)
-        return ''
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
     finally:
         os.remove(tmp_asm.name)
         # object file won't exist if assembler fails
         if os.path.exists(tmp_obj.name):
             os.remove(tmp_obj.name)
         os.remove(tmp_binary.name)
+    return ''
 
 # invoke objdump to disassemble single instruction
 # accepts encoded instruction (exactly 4 bytes), from least significant byte
@@ -95,7 +110,7 @@ def single_line_disassmble(binary_instr, addr):
     tmp_binary.close()
 
     raw_output = subprocess.check_output([
-        CCPREFIX + 'objdump', '-D', '-b', 'binary',
+        CMD_DISASSEMBLER, '-D', '-b', 'binary',
         '--adjust-vma=' + str(addr),
         '-m', 'mips:isa32r2', tmp_binary.name])
     # the last line should be something like:
@@ -357,6 +372,8 @@ if __name__ == "__main__":
             exit(1)
     else:
         parser.print_help()
+        exit(1)
+    if not test_programs():
         exit(1)
     Main(not args.continued)
 
