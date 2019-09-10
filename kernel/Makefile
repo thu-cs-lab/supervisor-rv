@@ -24,14 +24,11 @@ else
 endif
 ASFLAG += $(MACH_DEF)
 
-.PHONY: all clean show-utest
+.PHONY: all clean show-utest sim debug
 
 all: checkdirs $(TARGET) kernel.bin kernel.asm
 
 $(TARGET): $(OBJ) $(LDSCRIPT)
-	$(LD) $(OBJ) -T$(LDSCRIPT)
-
-kernel: $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
 
 checkdirs: $(OBJDIR)
@@ -51,8 +48,14 @@ kernel.asm: $(TARGET)
 show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
-final : $(TARGET)
+final: $(TARGET)
 	$(OBJDUMP) -d $< > final.txt
+
+sim: $(TARGET)
+	qemu-system-riscv32 -M virt -m 32M -kernel kernel.elf -vnc :0 -serial tcp::6666,server
+
+debug: $(TARGET)
+	qemu-system-riscv32 -M virt -m 32M -kernel kernel.elf -vnc :0 -serial tcp::6666,server -S -s
 
 clean:
 	-$(RM) -r $(OBJDIR)

@@ -10,9 +10,9 @@ Thinpad 教学计算机搭配了监控程序，能够接受用户命令，支持
 
 ## Kernel
 
-Kernel 使用汇编语言编写，使用到的指令有20余条，均符合 RISC-V32 Spec V2.2 规范。Kernel 提供了三种不同的版本，以适应不同的档次的 CPU 实现。它们分别是：第一档为基础版本，直接基本的I/O和命令执行功能，不依赖异常、中断、CP0等处理器特征，适合于最简单的 CPU 实现；第二档支持中断，使用中断方式完成串口的I/O功能，需要处理器实现中断处理机制，及相关的CP0处理器；第三档在第二档基础上进一步增加了TLB的应用，要求处理器支持基于TLB的内存映射，更加接近于操作系统对处理器的需求。
+Kernel 使用汇编语言编写，使用到的指令有20余条，均符合 RISC-V32 规范。Kernel 提供了三种不同的版本，以适应不同的档次的 CPU 实现。它们分别是：第一档为基础版本，直接基本的I/O和命令执行功能，不依赖异常、中断、CP0等处理器特征，适合于最简单的 CPU 实现；第二档支持中断，使用中断方式完成串口的I/O功能，需要处理器实现中断处理机制，及相关的CP0处理器；第三档在第二档基础上进一步增加了TLB的应用，要求处理器支持基于 TLB 的内存映射，更加接近于操作系统对处理器的需求。
 
-为了在硬件上运行 Kernel 程序，我们首先要对 Kernel 的汇编代码进行编译。建议使用 [MTI Bare Metal](https://cloud.tsinghua.edu.cn/f/16dde018b00749a4a4de/) 编译器。将下载的压缩包解压到任意目录后，把 `bin` 文件夹添加到系统的 `PATH` 环境变量中，以便 make 工具找到编译器。
+为了在硬件上运行 Kernel 程序，我们首先要对 Kernel 的汇编代码进行编译。
 
 下面是编译监控程序的过程。在`kernel`文件夹下面，有汇编代码和 Makefile 文件，我们可以使用 make 工具编译 Kernel 程序。假设当前目录为 `kernel` ，目标版本为基础版本，我们在终端中运行命令
 
@@ -38,27 +38,24 @@ Kernel 运行后会先通过串口输出版本号，该功能可作为检验其�
 
 基础版本的 Kernel 共使用了21条不同的指令，它们是：
 
-1. `ADDIU` 001001ssssstttttiiiiiiiiiiiiiiii
-1. `ADDU` 000000ssssstttttddddd00000100001
-1. `AND` 000000ssssstttttddddd00000100100
-1. `ANDI` 001100ssssstttttiiiiiiiiiiiiiiii
-1. `BEQ` 000100ssssstttttoooooooooooooooo
-1. `BGTZ` 000111sssss00000oooooooooooooooo
-1. `BNE` 000101ssssstttttoooooooooooooooo
-1. `J` 000010iiiiiiiiiiiiiiiiiiiiiiiiii
-1. `JAL` 000011iiiiiiiiiiiiiiiiiiiiiiiiii
-1. `JR` 000000sssss0000000000hhhhh001000
-1. `LB` 100000bbbbbtttttoooooooooooooooo
-1. `LUI` 00111100000tttttiiiiiiiiiiiiiiii
-1. `LW` 100011bbbbbtttttoooooooooooooooo
-1. `OR` 000000ssssstttttddddd00000100101
-1. `ORI` 001101ssssstttttiiiiiiiiiiiiiiii
-1. `SB` 101000bbbbbtttttoooooooooooooooo
-1. `SLL` 00000000000tttttdddddaaaaa000000
-1. `SRL` 00000000000tttttdddddaaaaa000010
-1. `SW` 101011bbbbbtttttoooooooooooooooo
-1. `XOR` 000000ssssstttttddddd00000100110
-1. `XORI` 001110ssssstttttiiiiiiiiiiiiiiii
+1. `ADDI`  iiiiiiiiiiiisssss000ddddd0010011
+1. `AND`   0000000SSSSSsssss111ddddd0110011
+1. `ANDI`  iiiiiiiiiiiisssss111ddddd0010011
+1. `AUIPC` iiiiiiiiiiiiiiiiiiiiddddd0010111
+1. `BEQ`   iiiiiiiSSSSSsssss000iiiii1100011
+1. `BNE`   iiiiiiiSSSSSsssss001iiiii1100011
+1. `JAL`   iiiiiiiiiiiiiiiiiiiiddddd1101111
+1. `JALR`  iiiiiiiiiiiisssss000ddddd1100111
+1. `LB`    iiiiiiiiiiiisssss000ddddd0000011
+1. `LUI`   iiiiiiiiiiiiiiiiiiiiddddd0110111
+1. `LW`    iiiiiiiiiiiisssss010ddddd0000011
+1. `OR`    0000000SSSSSsssss110ddddd0110011
+1. `ORI`   iiiiiiiiiiiisssss110ddddd0010011
+1. `SB`    iiiiiiiSSSSSsssss000iiiii0100011
+1. `SLLI`  0000000iiiiisssss001ddddd0010011
+1. `SRLI`  0000000iiiiisssss101ddddd0010011
+1. `SW`    iiiiiiiSSSSSsssss010iiiii0100011
+1. `XOR`   0000000SSSSSsssss100ddddd0110011
 
 根据 RISC-V32 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
 
@@ -250,11 +247,11 @@ Term 程序位于`term`文件夹中，可执行文件为`term.py`。对于本地
 
 ## 参考文献
 
-- CPU采用的RISC-V32指令集标准：RISC-V32® Architecture For Programmers Volume II: The RISC-V32® Instruction Set
-- RISC-V32中断及TLB等特权态资源：RISC-V32® Architecture For Programmers Volume III: The RISC-V32® Privileged Resource Architecture
+- CPU采用的 RISC-V 32 指令集标准：The RISC-V Instruction Set Manual Volume I: User-Level ISA Document
+- RISC-V32 中断及TLB等特权态资源：The RISC-V Instruction Set Manual Volume II: Privileged Architecture
 
 ## 项目作者
 
 - 初始版本：韦毅龙，李成杰，孟子焯
-- RISC-V版本移植：韩东池、耿威
-- 后续维护：张宇翔，董豪宇
+- RISC-V版本移植：韩东池，耿威
+- 后续维护：张宇翔，董豪宇，陈嘉杰

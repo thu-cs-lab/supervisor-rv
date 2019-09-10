@@ -18,7 +18,6 @@
 UTEST_SIMPLE:
     addi t5, t5, 0x1
     jr ra
-    nop
 
 /*  性能标定程序(1)
      *  这段程序一般没有数据冲突和结构冲突，可作为性能标定。
@@ -27,19 +26,13 @@ UTEST_SIMPLE:
      */
 UTEST_1PTB:
     lui t5, %hi(TESTLOOP64)         // 装入64M
-    nop
-    nop
-    nop
 .LC0:
     addi t0, t0, -1                // 滚动计数器
     ori t1, zero, 0
     ori t2, zero, 1
     ori t3, zero, 2
     bne t0, zero, .LC0
-    nop
-    nop
     jr ra
-    nop
 
     /*  运算数据冲突的效率测试(2)
      *  这段程序含有大量数据冲突，可测试数据冲突对效率的影响。
@@ -63,9 +56,7 @@ UTEST_2DCT:
     xor t1, t1, t3
     addi t0, t0, -1
     bne t0, zero, .LC1
-    nop
     jr ra
-    nop
 
     /*  控制指令冲突测试(3)
      *  这段程序有大量控制冲突。
@@ -76,17 +67,13 @@ UTEST_3CCT:
     lui t0, %hi(TESTLOOP64)         // 装入64M
 .LC2_0:
     bne t0, zero, .LC2_1
-    nop
     jr ra
-    nop
 .LC2_1:
     j .LC2_2
-    nop
 .LC2_2:
     addi t0, t0, -1
     j .LC2_0
     addi t0, t0, -1
-    nop
 
     /*  访存相关数据冲突测试(4)
      *  这段程序反复对内存进行有数据冲突的读写。
@@ -103,7 +90,5 @@ UTEST_4MDCT:
     sw t1, 0(sp)
     lw t0, 0(sp)
     bne t0, zero, .LC3
-    nop
     addi sp, sp, 4
     jr ra
-    nop

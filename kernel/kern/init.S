@@ -51,11 +51,9 @@ START:
     addi s11, s11, %lo(_ebss)
 bss_init:
     beq s10, s11, bss_init_done
-    nop
     sw  zero, 0(s10)
     addi s10, s10, 4
     j   bss_init
-    nop
 
 bss_init_done:
 /*
@@ -130,7 +128,6 @@ bss_init_done:
     addi sp, sp, -4                // 移动栈指针
     sw zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC0              // 初始化循环
-    nop
     lui t0, %hi(TCBT)
     addi t0, t0, %lo(TCBT)           // 载入TCBT地址
     sw sp, 0(t0)                    // thread0(idle)的中断帧地址设置
@@ -154,7 +151,6 @@ bss_init_done:
     addi sp, sp, -4                // 移动栈指针
     sw zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC1              // 初始化循环
-    nop
     lui t0, %hi(TCBT)
     addi t0, t0, %lo(TCBT)           // 载入TCBT地址
     sw sp, 4(t0)                    // thread1(shell/user)的中断帧地址设置

@@ -8,7 +8,6 @@ INITLOCATE:                         // 定位启动程序
     lui s10, %hi(START)
     addi s10, s10, %lo(START)
     jr s10
-    nop
 
 /*
     .section .text.ebase180

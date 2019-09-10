@@ -201,7 +201,8 @@ def run_U(addr, num):
     counter = 0
     while counter < num:
         val_raw = inp.read(4)
-        print('0x%08x: %s' % (addr,single_line_disassmble(val_raw, addr)))
+        val = byte_string_to_int(val_raw)
+        print('0x%08x:\t%08x\t%s' % (addr, val, single_line_disassmble(val_raw, addr)))
         counter = counter + 4
         addr = addr + 4
 

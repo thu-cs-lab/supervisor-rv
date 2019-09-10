@@ -25,30 +25,22 @@ uregs:
      */
 SHELL:
     jal READSERIAL                  // 读操作符
-    nop
 
     ori t0, zero, SH_OP_R
     beq t5, t0, .OP_R
-    nop
     ori t0, zero, SH_OP_D
     beq t5, t0, .OP_D
-    nop
     ori t0, zero, SH_OP_A
     beq t5, t0, .OP_A
-    nop
     ori t0, zero, SH_OP_G
     beq t5, t0, .OP_G
-    nop
     ori t0, zero, SH_OP_T
     beq t5, t0, .OP_T
-    nop
     j .DONE                         // 错误的操作符，默认忽略
-    nop
 
 
 .OP_T:                              // 操作 - 打印TLB项
     jal READSERIALWORD              // 取num(index)
-    nop
     addi sp, sp, -0x18
     sw s1, 0x0(sp)
     sw s2, 0x4(sp)
@@ -83,17 +75,14 @@ SHELL:
     lb a0, 0x0(s1)                  // 读一字节
     addi s2, s2, -1                 // 滚动计数器
     jal WRITESERIAL                 // 打印
-    nop
     addi s1, s1, 1                  // 移动打印指针
     bne s2, zero, .LC3              // 打印循环
-    nop
 
     lw s1, 0x0(sp)
     lw s2, 0x4(sp)
     addi sp, sp, 0x18
 
     j .DONE
-    nop
 
 .OP_R:                              // 操作 - 打印用户空间寄存器
     addi sp, sp, -8                 // 保存s1,s2
@@ -106,16 +95,13 @@ SHELL:
     lb a0, %lo(uregs)(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
     jal WRITESERIAL                 // 写入串口
-    nop
     addi s1, s1, 0x1                // 移动打印指针
     bne s2, zero, .LC0              // 打印循环
-    nop
 
     lw s1, 0(sp)                    // 恢复s1,s2
     lw s2, 4(sp)
     addi sp, sp, 8
     j .DONE
-    nop
 
 .OP_D:                              // 操作 - 打印内存num字节
     addi sp, sp, -8                 // 保存s1,s2
@@ -123,26 +109,21 @@ SHELL:
     sw s2, 4(sp)
 
     jal READSERIALWORD
-    nop
     or s1, t5, zero                 // 获得addr
     jal READSERIALWORD
-    nop
     or s2, t5, zero                 // 获得num
 
 .LC1:
     lb a0, 0(s1)                    // 读取字节
     addi s2, s2, -1                 // 滚动计数器
     jal WRITESERIAL                 // 写入串口
-    nop
     addi s1, s1, 0x1                // 移动打印指针
     bne s2, zero, .LC1              // 打印循环
-    nop
 
     lw s1, 0(sp)                    // 恢复s1,s2
     lw s2, 4(sp)
     addi sp, sp, 8
     j .DONE
-    nop
 
 .OP_A:                              // 操作 - 写入内存num字节，num为4的倍数
     addi sp, sp, -8                 // 保存s1,s2
@@ -150,34 +131,27 @@ SHELL:
     sw s2, 4(sp)
 
     jal READSERIALWORD
-    nop
     or s1, t5, zero                 // 获得addr
     jal READSERIALWORD
-    nop
     or s2, t5, zero                 // 获得num
     srl s2, s2, 2                   // num除4，获得字数
 .LC2:                               // 每次写入一字
     jal READSERIALWORD              // 从串口读入一字
-    nop
     sw t5, 0(s1)                    // 写内存一字
     addi s2, s2, -1                 // 滚动计数器
     addi s1, s1, 4                  // 移动写指针
     bne s2, zero, .LC2              // 写循环
-    nop
 
     lw s1, 0(sp)                    // 恢复s1,s2
     lw s2, 4(sp)
     addi sp, sp, 8
     j .DONE
-    nop
 
 .OP_G:
     jal READSERIALWORD              // 获取addr
-    nop
 
     ori a0, zero, TIMERSET          // 写TIMERSET(0x06)信号
     jal WRITESERIAL                 // 告诉终端用户程序开始运行
-    nop
 
 /*
 #ifdef ENABLE_INT
@@ -228,7 +202,6 @@ SHELL:
 
     lui ra, %hi(.USERRET2)          // ra写入返回地址
     addi ra, ra, %lo(.USERRET2)
-    nop
 
 /*
 #ifdef ENABLE_INT
@@ -236,14 +209,11 @@ SHELL:
 #else
 */
     jr s10
-    nop                             //运行用户程序
 /*
 #endif
 */
 
 .USERRET2:
-    nop
-
     lui ra, %hi(uregs)              // 定位用户空间寄存器备份地址
     addi ra, ra, %lo(uregs)
 
@@ -282,11 +252,8 @@ SHELL:
     lw sp, PUTREG(32)(ra)           // 重新获得当前监控程序栈顶指针
     ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
     jal WRITESERIAL                 // 告诉终端用户程序结束运行
-    nop
 
     j .DONE
-    nop
 
 .DONE:
     j SHELL                         // 交互循环
-    nop
