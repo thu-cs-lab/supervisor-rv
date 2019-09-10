@@ -1,10 +1,7 @@
-#include <regdef.h>
-#include <mipsregs.h>
-#include <unistd.h>
 #include <exception.h>
 
-    .set noreorder
-    .set noat
+//.set noreorder
+//.set noat
 
     .section .bss
     .p2align 2
@@ -15,6 +12,7 @@ TCBT:
     .global current                 // current thread TCB address
 current:
     .long 0
+/*
 #ifdef ENABLE_TLB                   // 声明页表
     .section .bss.ptes
     .global PTECODE
@@ -34,32 +32,33 @@ PTESTACK:
     .long 0
     .endr
 #endif
+*/
 
     .text
     .p2align 2
-monitor_version:
-    .asciz "MONITOR for MIPS32 - initialized."
-
+//monitor_version:
+//    .asciz "MONITOR for RISC-V - initialized."
 
     /* start address for the .bss section. defined in linker script */
     .word   _sbss
     /* end address for the .bss section. defined in linker script */
     .word   _ebss
     .global START
-START:                              // kernel init
-    lui k0, %hi(_sbss)
-    addiu k0, %lo(_sbss)
-    lui k1, %hi(_ebss)
-    addiu k1, %lo(_ebss)
+START:
+    lui s10, %hi(_sbss)
+    addi s10, s10, %lo(_sbss)
+    lui s11, %hi(_ebss)
+    addi s11, s11, %lo(_ebss)
 bss_init:
-    beq k0, k1, bss_init_done
+    beq s10, s11, bss_init_done
     nop
-    sw  zero, 0(k0)
-    addiu k0, k0, 4
-    b   bss_init
+    sw  zero, 0(s10)
+    addi s10, s10, 4
+    j   bss_init
     nop
 
 bss_init_done:
+/*
 #ifdef ENABLE_INT
     mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
     nop
@@ -83,11 +82,12 @@ bss_init_done:
     and t0, t0, t1                  // Cause IV位置零
     mtc0 t0, CP0_CAUSE              // 关闭中断特殊入口
 #endif
+*/
     lui sp, %hi(KERNEL_STACK_INIT)  // 设置内核栈
-    addiu sp, %lo(KERNEL_STACK_INIT)
-    or fp, sp, zero
+    addi sp, sp, %lo(KERNEL_STACK_INIT)
+    or s0, sp, zero
     lui t0, %hi(USER_STACK_INIT)    // 设置用户栈
-    addiu t0, %lo(USER_STACK_INIT)
+    addi t0, t0, %lo(USER_STACK_INIT)
     lui t1, %hi(uregs_sp)           // 写入用户空间备份
     sw t0, %lo(uregs_sp)(t1)
     lui t1, %hi(uregs_fp)
@@ -116,24 +116,26 @@ bss_init_done:
     sb t1, %lo(SerialStat)(t0)      // 串口可读中断
 #endif
 
-#ifdef ENABLE_INT
-    /* enable serial interrupt */
-    mfc0 t0, CP0_STATUS
-    ori t0, t0, STATUSF_IP4         // hardware interrupt source #2, irq #4
-    mtc0 t0, CP0_STATUS
-#endif
+
+//#ifdef ENABLE_INT
+//    /* enable serial interrupt */
+//    mfc0 t0, CP0_STATUS
+//    ori t0, t0, STATUSF_IP4         // hardware interrupt source #2, irq #4
+//    mtc0 t0, CP0_STATUS
+//#endif
 
 
     ori t0, zero, TF_SIZE / 4       // 计数器
 .LC0:
-    addiu t0, t0, -1                // 滚动计数器
-    addiu sp, sp, -4                // 移动栈指针
+    addi t0, t0, -1                // 滚动计数器
+    addi sp, sp, -4                // 移动栈指针
     sw zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC0              // 初始化循环
     nop
     lui t0, %hi(TCBT)
-    addiu t0, %lo(TCBT)           // 载入TCBT地址
+    addi t0, t0, %lo(TCBT)           // 载入TCBT地址
     sw sp, 0(t0)                    // thread0(idle)的中断帧地址设置
+/*
 #ifdef ENABLE_INT
     mfc0 t1, CP0_STATUS             // 取STATUS
     mfc0 t2, CP0_CAUSE              // 取CAUSE
@@ -144,26 +146,28 @@ bss_init_done:
     addiu t3, %lo(IDLELOOP)       // 取得idle线程入口
     sw t3, TF_EPC(sp)               // 写中断帧EPC
 #endif
+*/
     or t6, sp, zero                 // t6保存idle中断帧位置
 
     ori t0, zero, TF_SIZE / 4       // 计数器
 .LC1:
-    addiu t0, t0, -1                // 滚动计数器
-    addiu sp, sp, -4                // 移动栈指针
+    addi t0, t0, -1                // 滚动计数器
+    addi sp, sp, -4                // 移动栈指针
     sw zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC1              // 初始化循环
     nop
     lui t0, %hi(TCBT)
-    addiu t0, %lo(TCBT)           // 载入TCBT地址
+    addi t0, t0, %lo(TCBT)           // 载入TCBT地址
     sw sp, 4(t0)                    // thread1(shell/user)的中断帧地址设置
     sw sp, TF_sp(t6)                // 设置idle线程栈指针(调试用?)
 
     lui t2, %hi(TCBT + 4)
-    addiu t2, %lo(TCBT + 4)
+    addi t2, t2, %lo(TCBT + 4)
     lw t2, 0(t2)                    // 取得thread1的TCB地址
     lui t1, %hi(current)
     sw t2, %lo(current)(t1)         // 设置当前线程为thread1
 
+/*
 #ifdef ENABLE_TLB                   // 打开TLB机制
     lui t0, 0xC000                  // PTE在kseg2
     mtc0 zero, CP0_PAGEMASK         // pagemask置零，使用4kB页
@@ -202,7 +206,7 @@ bss_init_done:
     lui a0, %hi(PTECODE)            // 填页表1
     addiu a0, %lo(PTECODE)
     lui t0, %hi(PRAM0UBASE)
-    addiu t0, %lo(PRAM0UBASE)     // 物理地址
+    addiu t0, %lo(PRAM0UBASE)       // 物理地址
     srl t0, t0, 6                   // pa(12)->pfn(6)
     ori t0, t0, (ELO_VALIDF | ELO_DIRTYF | ELO_GLOBALF)
                                     // 可访问可写
@@ -218,7 +222,7 @@ bss_init_done:
     lui a0, %hi(PTESTACK)           // 填页表2
     addiu a0, %lo(PTESTACK)
     lui t0, %hi(PRAM1BASE)
-    addiu t0, %lo(PRAM1BASE)      // 物理地址
+    addiu t0, %lo(PRAM1BASE)        // 物理地址
     srl t0, t0, 6                   // pa(12)->pfn(6)
     ori t0, t0, (ELO_VALIDF | ELO_DIRTYF | ELO_GLOBALF)
                                     // 可访问可写
@@ -267,7 +271,9 @@ bss_init_done:
     tlbwi
     nop
 #endif
+*/
 
+/*
 #ifdef ENABLE_INT
     mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
     nop
@@ -277,6 +283,7 @@ bss_init_done:
     mtc0 t0, CP0_STATUS             // 启动完成，恢复中断机制
     nop
 #endif
+*/
 
     j WELCOME                       // 进入主线程
     nop
@@ -284,20 +291,120 @@ bss_init_done:
 
 
 WELCOME:
-    lui s0, %hi(monitor_version)    // 装入启动信息
-    addiu s0, %lo(monitor_version)
-    lb a0, 0(s0)
+/*
+    lui s1, %hi(monitor_version)    // 装入启动信息
+    addi s1, s1, %lo(monitor_version)
+    lb a0, 0(s1)
 .Loop0:
-    addiu s0, s0, 0x1
+    addi s1, s1, 0x1
     jal WRITESERIAL                 // 调用串口写函数
     nop
-    lb a0, 0(s0)
+    lb a0, 0(s1)
     bne a0, zero, .Loop0            // 打印循环至0结束符
     nop
-    j SHELL                         // 开始交互
+*/
+    ori a0, zero, 0x4d              // 'M'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x4f              // 'O'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x4e              // 'N'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x49              // 'I'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x54              // 'T'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x4f              // 'O'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x52              // 'R'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x20              // ' '
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x66              // 'f'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x6f              // 'o'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x72              // 'r'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x20              // ' '
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x52              // 'R'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x49              // 'I'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x53              // 'S'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x43              // 'C'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x2d              // '-'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x56              // 'v'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x20              // ' '
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x2d              // '-'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x20              // ' '
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x69              // 'i'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x6e              // 'n'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x69              // 'i'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x74              // 't'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x69              // 'i'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x61              // 'a'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x6c              // 'l'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x69              // 'i'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x7a              // 'z'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x65              // 'e'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x64              // 'd'
+    jal WRITESERIAL
+    nop
+    ori a0, zero, 0x2e              // '.'
+    jal WRITESERIAL
     nop
 
-
+    j SHELL                         // 开始交互
+    nop
 
 IDLELOOP:
     nop
@@ -312,15 +419,3 @@ IDLELOOP:
     nop
     j IDLELOOP
     nop
-
-
-    .set at
-    .set reorder
-
-
-
-
-
-
-
-// vim: syntax=asm

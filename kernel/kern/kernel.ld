@@ -1,7 +1,7 @@
-ENTRY(INITLOCATE)
-OUTPUT("kernel.elf")
-OUTPUT_ARCH("mips:isa32r2")
-OUTPUT_FORMAT("elf32-tradlittlemips")
+ENTRY(START)
+OUTPUT(kernel.elf)
+OUTPUT_ARCH("riscv:rv32")
+OUTPUT_FORMAT("elf32-littleriscv")
 
 PROVIDE(SerialData = 0xBFD003F8);
 PROVIDE(SerialStat = 0xBFD003FC);
@@ -22,6 +22,7 @@ PROVIDE(COM_MCR = COM1 + 4);
 PROVIDE(COM_IER = COM1 + 1);
 PROVIDE(COM_IER_RDI = 0x01);
 
+
 PROVIDE(KERNEL_STACK_INIT = 0x80800000);
 PROVIDE(USER_STACK_INIT = 0x807F0000);
 SECTIONS
@@ -38,8 +39,8 @@ SECTIONS
     .rodata : {
         *(.rodata)
     }
-    PROVIDE(uregs_sp = uregs + (29 - 1) * 4);
-    PROVIDE(uregs_fp = uregs + (30 - 1) * 4);
+    PROVIDE(uregs_sp = uregs + (2 - 1) * 4);
+    PROVIDE(uregs_fp = uregs + (8 - 1) * 4);
     . = 0x80000000;
     .text.init : {
         KEEP (*(.text.init))

@@ -1,19 +1,16 @@
-#include <regdef.h>
-#include <mipsregs.h> 
-
 // You don't have to care about this file if you don't enable interrupt and TLB.
 
-    .set noreorder
-    .set noat
+    //.set noreorder
+    //.set noat
     .p2align 2
     .section .text.init
-    .global INITLOCATE
 INITLOCATE:                         // 定位启动程序
-    lui k0, %hi(START)
-    addiu k0, %lo(START)
-    jr k0
+    lui s10, %hi(START)
+    addi s10, s10, %lo(START)
+    jr s10
     nop
 
+/*
     .section .text.ebase180
 EHANDLERLOCATE:                     // 定位普通中断处理程序
     lui k0, %hi(EXCEPTIONHANDLER)
@@ -33,8 +30,5 @@ TLBREFILL:                          // TLB快速重填
     tlbwr
     eret
 #endif
-    nop
-
-
-    .set reorder
-    .set at
+nop
+*/

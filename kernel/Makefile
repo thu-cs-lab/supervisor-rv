@@ -1,14 +1,10 @@
 RM	:= rm -f
-ifeq ($(OS),Windows_NT)
-# Windows Host
-GCCPREFIX	:= mips-mti-elf-
-else
-#GCCPREFIX	:= mipsel-linux-gnu-
-GCCPREFIX	:= mips-mti-elf-
-endif
-QEMU := qemu-system-mipsel
+GCCPREFIX := /PATH/bin/riscv32-unknown-elf-
+# linux 下编译器的地址，可能根据不同的操作系统有所修改
 LD	:= $(GCCPREFIX)ld
 CC	:= $(GCCPREFIX)gcc
+AS  := $(GCCPREFIX)as
+OBJDUMP := $(GCCPREFIX)objdump
 MODULE	:= init
 OBJDIR	:= obj
 INCLUDE	:= include
@@ -17,7 +13,7 @@ LDSCRIPT	:= kern/kernel.ld
 SRC	:= $(foreach sdir, $(SRCDIR), $(wildcard $(sdir)/*.S))
 OBJ	:= $(patsubst $(SRCDIR)/%.S, $(OBJDIR)/%.o, $(SRC))
 TARGET	:= kernel.elf
-ASFLAG	:= -D__ASSEMBLY__ -EL -g -mips32r2 -mno-abicalls -mno-shared
+ASFLAG	:= -D__ASSEMBLY__ -march=rv32i -mabi=ilp32 -g
 
 override ON_FPGA ?= n
 
@@ -28,38 +24,23 @@ else
 endif
 ASFLAG += $(MACH_DEF)
 
-override EN_INT ?= n
-ifeq ($(EN_INT), y)
-	ASFLAG += -DENABLE_INT
-	EN_TLB = n
-endif
-
-override EN_TLB ?= n
-ifeq ($(EN_TLB), y)
-	ASFLAG += -DENABLE_TLB
-endif
-
-CONFIG_FILE := .config_$(ON_FPGA)_$(EN_INT)_$(EN_TLB)
-
 .PHONY: all clean show-utest
 
-all: $(TARGET) kernel.bin
+all:checkdirs $(TARGET) kernel.bin
 
-$(CONFIG_FILE):
-	@rm -f .config_*
-	touch $@
-
-$(TARGET): checkdirs $(OBJ) $(LDSCRIPT)
+$(TARGET): $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
 
-$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S $(CONFIG_FILE)
-	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAG)
-
+kernel: $(OBJ) $(LDSCRIPT)
+	$(LD) $(OBJ) -T$(LDSCRIPT)
 
 checkdirs: $(OBJDIR)
 
 $(OBJDIR):
 	test -d $@ || mkdir $@
+
+$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S
+	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAG)
 
 kernel.bin: $(TARGET)
 	@$(GCCPREFIX)objcopy -j .text -j .text.* -O binary -v $< kernel.bin
@@ -67,13 +48,8 @@ kernel.bin: $(TARGET)
 show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
-.PHONY: commits-num show-utest sim clean
-
-sim: $(TARGET)
-	$(QEMU) -M mipssim -m 8M -kernel $< -vnc :0 -serial tcp::6666,server -s
-
-commits-num:
-	@git log --pretty=format:"commit %H" | grep -c 'commit'
+final : $(TARGET)
+	$(OBJDUMP) -d $< > final.txt
 
 clean:
 	-$(RM) -r $(OBJDIR)
