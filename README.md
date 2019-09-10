@@ -38,24 +38,26 @@ Kernel 运行后会先通过串口输出版本号，该功能可作为检验其�
 
 基础版本的 Kernel 共使用了21条不同的指令，它们是：
 
-1. `ADDI`  iiiiiiiiiiiisssss000ddddd0010011
-1. `AND`   0000000SSSSSsssss111ddddd0110011
-1. `ANDI`  iiiiiiiiiiiisssss111ddddd0010011
-1. `AUIPC` iiiiiiiiiiiiiiiiiiiiddddd0010111
-1. `BEQ`   iiiiiiiSSSSSsssss000iiiii1100011
-1. `BNE`   iiiiiiiSSSSSsssss001iiiii1100011
-1. `JAL`   iiiiiiiiiiiiiiiiiiiiddddd1101111
-1. `JALR`  iiiiiiiiiiiisssss000ddddd1100111
-1. `LB`    iiiiiiiiiiiisssss000ddddd0000011
-1. `LUI`   iiiiiiiiiiiiiiiiiiiiddddd0110111
-1. `LW`    iiiiiiiiiiiisssss010ddddd0000011
-1. `OR`    0000000SSSSSsssss110ddddd0110011
-1. `ORI`   iiiiiiiiiiiisssss110ddddd0010011
-1. `SB`    iiiiiiiSSSSSsssss000iiiii0100011
-1. `SLLI`  0000000iiiiisssss001ddddd0010011
-1. `SRLI`  0000000iiiiisssss101ddddd0010011
-1. `SW`    iiiiiiiSSSSSsssss010iiiii0100011
-1. `XOR`   0000000SSSSSsssss100ddddd0110011
+```asm
+ADDI  iiiiiiiiiiiisssss000ddddd0010011
+AND   0000000SSSSSsssss111ddddd0110011
+ANDI  iiiiiiiiiiiisssss111ddddd0010011
+AUIPC iiiiiiiiiiiiiiiiiiiiddddd0010111
+BEQ   iiiiiiiSSSSSsssss000iiiii1100011
+BNE   iiiiiiiSSSSSsssss001iiiii1100011
+JAL   iiiiiiiiiiiiiiiiiiiiddddd1101111
+JALR  iiiiiiiiiiiisssss000ddddd1100111
+LB    iiiiiiiiiiiisssss000ddddd0000011
+LUI   iiiiiiiiiiiiiiiiiiiiddddd0110111
+LW    iiiiiiiiiiiisssss010ddddd0000011
+OR    0000000SSSSSsssss110ddddd0110011
+ORI   iiiiiiiiiiiisssss110ddddd0010011
+SB    iiiiiiiSSSSSsssss000iiiii0100011
+SLLI  0000000iiiiisssss001ddddd0010011
+SRLI  0000000iiiiisssss101ddddd0010011
+SW    iiiiiiiSSSSSsssss010iiiii0100011
+XOR   0000000SSSSSsssss100ddddd0110011
+```
 
 根据 RISC-V32 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
 
