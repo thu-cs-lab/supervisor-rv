@@ -94,11 +94,13 @@ bss_init_done:
     sw t0, %lo(uregs_fp)(t1)
 
     /* init serial */
-#ifdef MACH_QEMU
+#ifdef MACH_FPGA
+    lui t0, %hi(SerialStat)
+    ori t1, zero, 0x10
+    sb t1, %lo(SerialStat)(t0)      // 串口可读中断
+#else
     /* see ucore/kern/driver/console.c */
-    lui t0, 0xBFD0                  // NOTE: all COM_* share high 16 bits
-                                    // 0xBFD0 should be %hi(COM1) but can not be used
-                                    // due to a compiler bug (bugzilla/20649)
+    lui t0, %hi(COM1)               // all COM_* shares the same %hi
     sb zero, %lo(COM_FCR)(t0)       // console.c:54
     ori t1, zero, %lo(COM_LCR_DLAB)
     sb t1, %lo(COM_LCR)(t0)         // :57
@@ -110,10 +112,6 @@ bss_init_done:
     sb zero, %lo(COM_MCR)(t0)       // :65
     ori t1, zero, %lo(COM_IER_RDI)
     sb t1, %lo(COM_IER)(t0)         // :67
-#else
-    lui t0, %hi(SerialStat)
-    ori t1, zero, 0x10
-    sb t1, %lo(SerialStat)(t0)      // 串口可读中断
 #endif
 
 

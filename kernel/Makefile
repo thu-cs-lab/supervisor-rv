@@ -26,7 +26,7 @@ ASFLAG += $(MACH_DEF)
 
 .PHONY: all clean show-utest
 
-all:checkdirs $(TARGET) kernel.bin
+all: checkdirs $(TARGET) kernel.bin kernel.asm
 
 $(TARGET): $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
@@ -43,7 +43,10 @@ $(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S
 	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAG)
 
 kernel.bin: $(TARGET)
-	@$(GCCPREFIX)objcopy -j .text -j .text.* -O binary -v $< kernel.bin
+	@$(GCCPREFIX)objcopy -j .text -j .text.* -O binary -v $< $@
+
+kernel.asm: $(TARGET)
+	@$(GCCPREFIX)objdump -d -S $< > $@
 
 show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'

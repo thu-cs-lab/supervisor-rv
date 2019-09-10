@@ -1,8 +1,8 @@
 set endian little
-set mipsfpu none
-target remote 127.0.0.1:1234
+file kernel.elf
 symbol-file kernel.elf
-#add-symbol-file boot/loader 0xbfc00000
+target remote 127.0.0.1:1234
 
-layout split
-until START
+layout SPLIT
+b START
+continue

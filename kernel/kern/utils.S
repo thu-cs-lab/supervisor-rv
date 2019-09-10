@@ -34,9 +34,8 @@ WRITESERIAL:                        // 写串口：将a0的低八位写入串口
 
 READSERIAL:                         // 读串口：将读到的数据写入v0低八位
 #ifdef MACH_FPGA
-    lui t1, %hi(SerialStat)
 .TESTR:
-    lb t0, %lo(SerialStat)(t1)      // 查看串口状态
+    lb t0, SerialStat
     andi t0, t0, 0x0002             // 截取读状态位
     bne t0, zero, .RSERIAL          // 状态位非零可读进入读
     nop
@@ -49,22 +48,19 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     j .TESTR                        // 检测验证
     nop
 .RSERIAL:
-    lui t1, %hi(SerialData)
-    lb t5, %lo(SerialData)(t1)      // 读出
+    lb t5, SerialData
     jr ra
     nop
-#else //ifdef MACH_FPGA
-    lui t1, %hi(COM1)
+#else // MACH_FPGA undefined
 .TESTR:
-    lb t0, %lo(COM_LSR)(t1)
-    andi t0, t0, COM_LSR_DATA
+    lb t0, COM_LSR
+    andi t0, t0, %lo(COM_LSR_DATA)
     bne t0, zero, .RSERIAL
     nop
     j .TESTR
     nop
 .RSERIAL:
-    lui t1, %hi(COM1)
-    lb v0, %lo(COM1)(t1)
+    lb t5, COM1
     jr ra
     nop
 #endif //ifdef MACH_FPGA
