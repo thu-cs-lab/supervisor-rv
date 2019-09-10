@@ -242,26 +242,31 @@ def MainLoop():
             if cmd == 'Q':
                 break
             elif cmd == 'A':
-                addr = raw_input('>>addr: 0x')
+                addr = raw_input('addr: 0x')
                 run_A(int(addr, 16))
             elif cmd == 'R':
                 run_R()
             elif cmd == 'D':
-                addr = raw_input('>>addr: 0x')
-                num = raw_input('>>num: ')
+                addr = raw_input('addr: 0x')
+                num = raw_input('num: ')
                 run_D(int(addr, 16), int(num))
             elif cmd == 'U':
-                addr = raw_input('>>addr: 0x')
-                num = raw_input('>>num: ')
+                addr = raw_input('addr: 0x')
+                num = raw_input('num: ')
                 run_U(int(addr, 16), int(num))
             elif cmd == 'G':
-                addr = raw_input('>>addr: 0x')
+                addr = raw_input('addr: 0x')
                 run_G(int(addr, 16))
             elif cmd == 'T':
-                num = raw_input('>>num: ')
+                num = raw_input('num: ')
                 run_T(int(num))
             else:
                 print("Invalid command")
+                print("Usage:\tR: print registers")
+                print("\tD: display memory")
+                print("\tA: put assembly at specified address")
+                print("\tU: read data and disassemble")
+                print("\tG: run user code")
         except ValueError as e:
             print(e)
 
