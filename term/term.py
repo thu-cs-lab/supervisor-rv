@@ -26,7 +26,7 @@ except:
 try: type(raw_input)
 except NameError: raw_input = input
 
-CCPREFIX = "mips-mti-elf-"
+CCPREFIX = "riscv64-unknown-elf-"
 if 'GCCPREFIX' in os.environ:
     CCPREFIX=os.environ['GCCPREFIX']
 CMD_ASSEMBLER = CCPREFIX + 'as'
@@ -62,7 +62,7 @@ def int_to_byte_string(val):
 def byte_string_to_int(val):
     return struct.unpack('<I', val)[0]
 
-# invoke assembler to encode single instruction (in little endian MIPS32)
+# invoke assembler to encode single instruction (in little endian RV32)
 # returns a byte string of encoded instruction, from lowest byte to highest byte
 # returns empty string on failure (in which case assembler messages are printed to stdout)
 def single_line_asm(instr):
@@ -76,7 +76,7 @@ def single_line_asm(instr):
         tmp_obj.close()
         tmp_binary.close()
         subprocess.check_output([
-            CMD_ASSEMBLER, '-EL', '-mips32r2', tmp_asm.name, '-o', tmp_obj.name])
+            CMD_ASSEMBLER,  tmp_asm.name, '-o', tmp_obj.name])
         subprocess.check_call([
             CMD_BINARY_COPY, '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
         with open(tmp_binary.name, 'rb') as f:
@@ -112,7 +112,7 @@ def single_line_disassmble(binary_instr, addr):
     raw_output = subprocess.check_output([
         CMD_DISASSEMBLER, '-D', '-b', 'binary',
         '--adjust-vma=' + str(addr),
-        '-m', 'mips:isa32r2', tmp_binary.name])
+        '-m', 'riscv:rv32', tmp_binary.name])
     # the last line should be something like:
     #    0:   21107f00        addu    v0,v1,ra
     result = raw_output.strip().split(b'\n')[-1].split(None, 2)[-1]
@@ -355,7 +355,7 @@ def InitializeTCP(host_port):
 if __name__ == "__main__":
     # para = '127.0.0.1:6666' if len(sys.argv) != 2 else sys.argv[1]
 
-    parser = argparse.ArgumentParser(description = 'Term for mips32 expirence.')
+    parser = argparse.ArgumentParser(description = 'Term for rv32 expirence.')
     parser.add_argument('-c', '--continued', action='store_true', help='Term will not wait for welcome if this flag is set')
     parser.add_argument('-t', '--tcp', default=None, help='TCP server address:port for communication')
     parser.add_argument('-s', '--serial', default=None, help='Serial port name (e.g. /dev/ttyACM0, COM3)')

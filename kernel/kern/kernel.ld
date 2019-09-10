@@ -9,8 +9,10 @@ PROVIDE(SerialStat = 0xBFD003FC);
 /* Qemu serial constants */
 PROVIDE(COM1 = 0x10000000);
 PROVIDE(COM_LSR = COM1 + 5);
-PROVIDE(COM_LSR_DATA = 0x01);
+PROVIDE(COM_LSR_DR = 0x01); /* Data ready */
+PROVIDE(COM_LSR_THRE = 0x20); /* Transmit hold register empty */
 PROVIDE(COM_FCR = COM1 + 2);
+PROVIDE(COM_FCR_CONFIG = 0x7); /* FIFO Enable and FIFO Reset */
 PROVIDE(COM_LCR = COM1 + 3);
 PROVIDE(COM_LCR_DLAB = 0x80);
 PROVIDE(COM_DLL = COM1 + 0);

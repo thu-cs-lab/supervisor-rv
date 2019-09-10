@@ -101,7 +101,8 @@ bss_init_done:
 #else
     /* see ucore/kern/driver/console.c */
     lui t0, %hi(COM1)               // all COM_* shares the same %hi
-    sb zero, %lo(COM_FCR)(t0)       // console.c:54
+    ori t1, zero, %lo(COM_FCR_CONFIG) // console.c:54
+    sb t1, %lo(COM_FCR)(t0)         // :57
     ori t1, zero, %lo(COM_LCR_DLAB)
     sb t1, %lo(COM_LCR)(t0)         // :57
     ori t1, zero, %lo(COM_DLL_VAL)

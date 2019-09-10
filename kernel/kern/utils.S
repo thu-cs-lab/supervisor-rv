@@ -26,6 +26,15 @@ WRITESERIAL:                        // 写串口：将a0的低八位写入串口
     jr ra
     nop
 #else
+    la t1, COM_LSR_THRE
+.TESTW:
+    lb t0, COM_LSR
+    and t0, t0, t1
+    bne t0, zero, .WSERIAL
+    nop
+    j .TESTW
+    nop
+.WSERIAL:
     lui t1, %hi(COM1)
     sb a0, %lo(COM1)(t1)
     jr ra
@@ -52,9 +61,10 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     jr ra
     nop
 #else // MACH_FPGA undefined
+    la t1, COM_LSR_DR
 .TESTR:
     lb t0, COM_LSR
-    andi t0, t0, %lo(COM_LSR_DATA)
+    and t0, t0, t1
     bne t0, zero, .RSERIAL
     nop
     j .TESTR
