@@ -1,6 +1,7 @@
 RM	:= rm -f
-GCCPREFIX := /PATH/bin/riscv32-unknown-elf-
 # linux 下编译器的地址，可能根据不同的操作系统有所修改
+GCCPREFIX := /PATH/bin/riscv32-unknown-elf-
+QEMU := qemu-system-riscv32
 LD	:= $(GCCPREFIX)ld
 CC	:= $(GCCPREFIX)gcc
 AS  := $(GCCPREFIX)as
@@ -52,10 +53,10 @@ final: $(TARGET)
 	$(OBJDUMP) -d $< > final.txt
 
 sim: $(TARGET)
-	qemu-system-riscv32 -M virt -m 32M -kernel kernel.elf -vnc :0 -serial tcp::6666,server
+	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server
 
 debug: $(TARGET)
-	qemu-system-riscv32 -M virt -m 32M -kernel kernel.elf -vnc :0 -serial tcp::6666,server -S -s
+	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server -S -s
 
 clean:
 	-$(RM) -r $(OBJDIR)
