@@ -62,10 +62,10 @@ def int_to_byte_string(val):
 def byte_string_to_int(val):
     return struct.unpack('<I', val)[0]
 
-# invoke assembler to encode single instruction (in little endian RV32)
-# returns a byte string of encoded instruction, from lowest byte to highest byte
+# invoke assembler to compile instructions (in little endian RV32)
+# returns a byte string of encoded instructions, from lowest byte to highest byte
 # returns empty string on failure (in which case assembler messages are printed to stdout)
-def single_line_asm(instr):
+def multi_line_asm(instr):
     tmp_asm = tempfile.NamedTemporaryFile(delete=False)
     tmp_obj = tempfile.NamedTemporaryFile(delete=False)
     tmp_binary = tempfile.NamedTemporaryFile(delete=False)
@@ -81,11 +81,6 @@ def single_line_asm(instr):
             CMD_BINARY_COPY, '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
         with open(tmp_binary.name, 'rb') as f:
             binary = f.read()
-            if len(binary) > 4:
-                binary = binary[:4]
-            # assert len(binary) == 4, \
-            #     "the result does not contains exactly one instruction, " + \
-            #     "%d instruction found" % (len(binary) / 4)
             return binary
     except subprocess.CalledProcessError as e:
         print(e.output)
@@ -146,20 +141,32 @@ def run_T(num):
 
 def run_A(addr):
     print("one instruction per line, empty line to end.")
+    offset = addr & 0xfffffff
+    prompt_addr = addr
+    asm = ".org {:#x}\n".format(offset)
     while True:
-        line = raw_input('[0x%04x] ' % addr)
-        if line.strip() == '':
-            return
+        line = raw_input('[0x%04x] ' % prompt_addr).strip()
+        if line == '':
+            break
+        elif re.match("\\w+:$", line) is not None:
+            # ASM label only
+            asm += line + "\n"
+            continue
         try:
-            instr = int_to_byte_string(int(line, 16))
+            asm += ".word {:#x}\n".format(int(line, 16))
         except ValueError:
-            instr = single_line_asm(line)
+            instr = multi_line_asm(line)
             if instr == '':
                 continue
+            asm += line + "\n"
+        prompt_addr = prompt_addr + 4
+    # print(asm)
+    binary = multi_line_asm(asm)
+    for i in range(offset, len(binary), 4):
         outp.write(b'A')
         outp.write(int_to_byte_string(addr))
         outp.write(int_to_byte_string(4))
-        outp.write(instr)
+        outp.write(binary[i:i+4])
         addr = addr + 4
 
 
