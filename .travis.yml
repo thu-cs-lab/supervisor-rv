@@ -1,4 +1,10 @@
 language: c
+
+cache:
+  cargo: true
+  directories:
+    - $TRAVIS_BUILD_DIR/qemu-4.1.0
+
 before_install:
   - sudo apt-get install -yy expect python3-pip
   - sudo pip3 install pyserial

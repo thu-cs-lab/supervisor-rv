@@ -34,8 +34,10 @@ SHELL:
     beq t5, t0, .OP_G
     ori t0, zero, SH_OP_T
     beq t5, t0, .OP_T
-    j .DONE                         // 错误的操作符，默认忽略
 
+    li a0, XLEN                     // 错误的操作符，输出 XLEN，用于区分 RV32 和 RV64
+    jal WRITESERIAL                 // 把 XLEN 写给 term
+    j .DONE                         
 
 .OP_T:                              // 操作 - 打印TLB项
     jal READSERIALWORD              // 取num(index)
@@ -162,40 +164,41 @@ SHELL:
 */
 
     la ra, uregs              // 定位用户空间寄存器备份地址
-    sw t5, PUTREG(1)(ra)           // 保存用户程序入口
-    sw sp, PUTREG(32)(ra)           // 保存栈指针
+    STORE t5, PUTREG(1)(ra)           // 保存用户程序入口
+    STORE sp, PUTREG(32)(ra)           // 保存栈指针
 
-    //lw x1,  PUTREG(1)(ra)
-    lw x2,  PUTREG(2)(ra)          // 装入x2-x31
-    lw x3,  PUTREG(3)(ra)
-    lw x4,  PUTREG(4)(ra)
-    lw x5,  PUTREG(5)(ra)
-    lw x6,  PUTREG(6)(ra)
-    lw x7,  PUTREG(7)(ra)
-    lw x8,  PUTREG(8)(ra)
-    lw x9,  PUTREG(9)(ra)
-    lw x10, PUTREG(10)(ra)
-    lw x11, PUTREG(11)(ra)
-    lw x12, PUTREG(12)(ra)
-    lw x13, PUTREG(13)(ra)
-    lw x14, PUTREG(14)(ra)
-    lw x15, PUTREG(15)(ra)
-    lw x16, PUTREG(16)(ra)
-    lw x17, PUTREG(17)(ra)
-    lw x18, PUTREG(18)(ra)
-    lw x19, PUTREG(19)(ra)
-    lw x20, PUTREG(20)(ra)
-    lw x21, PUTREG(21)(ra)
-    lw x22, PUTREG(22)(ra)
-    lw x23, PUTREG(23)(ra)
-    lw x24, PUTREG(24)(ra)
-    lw x25, PUTREG(25)(ra)
-    //lw x26, PUTREG(26)(ra)
-    //lw x27, PUTREG(27)(ra)
-    lw x28, PUTREG(28)(ra)
-    lw x29, PUTREG(29)(ra)
-    lw x30, PUTREG(30)(ra)
-    lw x31, PUTREG(31)(ra)
+    LOAD x1,  PUTREG(1)(ra)
+    LOAD x2,  PUTREG(2)(ra)          // 装入x2-x31
+    LOAD x3,  PUTREG(3)(ra)
+    LOAD x4,  PUTREG(4)(ra)
+    LOAD x5,  PUTREG(5)(ra)
+    LOAD x6,  PUTREG(6)(ra)
+    LOAD x7,  PUTREG(7)(ra)
+    LOAD x8,  PUTREG(8)(ra)
+    LOAD x9,  PUTREG(9)(ra)
+    LOAD x10, PUTREG(10)(ra)
+    LOAD x11, PUTREG(11)(ra)
+    LOAD x12, PUTREG(12)(ra)
+    LOAD x13, PUTREG(13)(ra)
+    LOAD x14, PUTREG(14)(ra)
+    LOAD x15, PUTREG(15)(ra)
+    LOAD x16, PUTREG(16)(ra)
+    LOAD x17, PUTREG(17)(ra)
+    LOAD x18, PUTREG(18)(ra)
+    LOAD x19, PUTREG(19)(ra)
+    LOAD x20, PUTREG(20)(ra)
+    LOAD x21, PUTREG(21)(ra)
+    LOAD x22, PUTREG(22)(ra)
+    LOAD x23, PUTREG(23)(ra)
+    LOAD x24, PUTREG(24)(ra)
+    LOAD x25, PUTREG(25)(ra)
+    // s10
+    // LOAD x26, PUTREG(26)(ra) 
+    LOAD x27, PUTREG(27)(ra)
+    LOAD x28, PUTREG(28)(ra)
+    LOAD x29, PUTREG(29)(ra)
+    LOAD x30, PUTREG(30)(ra)
+    LOAD x31, PUTREG(31)(ra)
 
     la ra, .USERRET2          // ra写入返回地址
 
@@ -212,39 +215,39 @@ SHELL:
 .USERRET2:
     la ra, uregs              // 定位用户空间寄存器备份地址
 
-    //sw x1,  PUTREG(1)(ra)
-    sw x2,  PUTREG(2)(ra)           // 备份x2-x31
-    sw x3,  PUTREG(3)(ra)
-    sw x4,  PUTREG(4)(ra)
-    sw x5,  PUTREG(5)(ra)
-    sw x6,  PUTREG(6)(ra)
-    sw x7,  PUTREG(7)(ra)
-    sw x8,  PUTREG(8)(ra)
-    sw x9,  PUTREG(9)(ra)
-    sw x10, PUTREG(10)(ra)
-    sw x11, PUTREG(11)(ra)
-    sw x12, PUTREG(12)(ra)
-    sw x13, PUTREG(13)(ra)
-    sw x14, PUTREG(14)(ra)
-    sw x15, PUTREG(15)(ra)
-    sw x16, PUTREG(16)(ra)
-    sw x17, PUTREG(17)(ra)
-    sw x18, PUTREG(18)(ra)
-    sw x19, PUTREG(19)(ra)
-    sw x20, PUTREG(20)(ra)
-    sw x21, PUTREG(21)(ra)
-    sw x22, PUTREG(22)(ra)
-    sw x23, PUTREG(23)(ra)
-    sw x24, PUTREG(24)(ra)
-    sw x25, PUTREG(25)(ra)
-    //sw x26, PUTREG(26)(ra)
-    //sw x27, PUTREG(27)(ra)
-    sw x28, PUTREG(28)(ra)
-    sw x29, PUTREG(29)(ra)
-    sw x30, PUTREG(30)(ra)
-    sw x31, PUTREG(31)(ra)
+    STORE x1,  PUTREG(1)(ra)
+    STORE x2,  PUTREG(2)(ra)           // 备份x2-x31
+    STORE x3,  PUTREG(3)(ra)
+    STORE x4,  PUTREG(4)(ra)
+    STORE x5,  PUTREG(5)(ra)
+    STORE x6,  PUTREG(6)(ra)
+    STORE x7,  PUTREG(7)(ra)
+    STORE x8,  PUTREG(8)(ra)
+    STORE x9,  PUTREG(9)(ra)
+    STORE x10, PUTREG(10)(ra)
+    STORE x11, PUTREG(11)(ra)
+    STORE x12, PUTREG(12)(ra)
+    STORE x13, PUTREG(13)(ra)
+    STORE x14, PUTREG(14)(ra)
+    STORE x15, PUTREG(15)(ra)
+    STORE x16, PUTREG(16)(ra)
+    STORE x17, PUTREG(17)(ra)
+    STORE x18, PUTREG(18)(ra)
+    STORE x19, PUTREG(19)(ra)
+    STORE x20, PUTREG(20)(ra)
+    STORE x21, PUTREG(21)(ra)
+    STORE x22, PUTREG(22)(ra)
+    STORE x23, PUTREG(23)(ra)
+    STORE x24, PUTREG(24)(ra)
+    STORE x25, PUTREG(25)(ra)
+    STORE x26, PUTREG(26)(ra)
+    STORE x27, PUTREG(27)(ra)
+    STORE x28, PUTREG(28)(ra)
+    STORE x29, PUTREG(29)(ra)
+    STORE x30, PUTREG(30)(ra)
+    STORE x31, PUTREG(31)(ra)
 
-    lw sp, PUTREG(32)(ra)           // 重新获得当前监控程序栈顶指针
+    LOAD sp, PUTREG(32)(ra)           // 重新获得当前监控程序栈顶指针
     ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
     jal WRITESERIAL                 // 告诉终端用户程序结束运行
 

@@ -58,7 +58,7 @@ show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
 sim: checkdirs $(TARGET)
-	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server
+	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server -s
 
 debug: checkdirs $(TARGET)
 	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server -S -s
