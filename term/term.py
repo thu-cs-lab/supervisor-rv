@@ -33,8 +33,8 @@ CMD_ASSEMBLER = CCPREFIX + 'as'
 CMD_DISASSEMBLER = CCPREFIX + 'objdump'
 CMD_BINARY_COPY = CCPREFIX + 'objcopy'
 
-Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
-                's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
+Reg_alias = ['zero', 'ra', 'sp', 'gp', 'tp', 't0', 't1', 't2', 's0/fp', 's1', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 
+                'a7', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 't3', 't4', 't5', 't6']
 
 xlen = 4
 arch = 'rv32'
@@ -60,10 +60,16 @@ def output_binary(binary):
 
 # convert 32-bit int to byte string of length 4, from LSB to MSB
 def int_to_byte_string(val):
-    return struct.pack('<I', val)
+    if xlen == 4:
+        return struct.pack('<I', val)
+    else:
+        return struct.pack('<Q', val)
 
 def byte_string_to_int(val):
-    return struct.unpack('<I', val)[0]
+    if xlen == 4:
+        return struct.unpack('<I', val)[0]
+    else:
+        return struct.unpack('<Q', val)[0]
 
 # invoke assembler to compile instructions (in little endian RV32/64)
 # returns a byte string of encoded instructions, from lowest byte to highest byte
@@ -176,9 +182,9 @@ def run_A(addr):
 def run_R():
     outp.write(b'R')
     for i in range(1, 31):
-        val_raw = inp.read(4)
+        val_raw = inp.read(xlen)
         val = byte_string_to_int(val_raw)
-        print('R{0}{1:7} = 0x{2:0>8x}'.format(
+        print(('R{0}{1:7} = 0x{2:0>' + str(xlen * 2) +'x}').format(
             str(i).ljust(2),
             '(' + Reg_alias[i] + ')',
             val,
@@ -301,11 +307,11 @@ def Main(welcome_message=True):
     while True:
         xlen = ord(inp.read(1))
         if xlen == 4:
-            print('running in 32bit')
+            print('running in 32bit, xlen = 4')
             arch = 'rv32'
             break
         elif xlen == 8:
-            print('running in 64bit')
+            print('running in 64bit, xlen = 8')
             arch = 'rv64'
             break
         elif xlen < 20:

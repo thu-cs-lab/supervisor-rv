@@ -60,7 +60,7 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
 #endif //ifdef MACH_FPGA
 
 READSERIALWORD:
-    addi sp, sp, -5*XLEN             // 保存ra,s0
+    addi sp, sp, -5*XLEN             // 保存ra,s0-3
     STORE ra, 0x0(sp)
     STORE s0, XLEN(sp)
     STORE s1, 2*XLEN(sp)
@@ -77,9 +77,9 @@ READSERIALWORD:
     or s3, zero, t5                 // 结果存入s3
 
     andi s0, s0, 0x00FF             // 截取低八位
-    andi s3, s3, 0x00FF
-    andi s2, s2, 0x00FF
     andi s1, s1, 0x00FF
+    andi s2, s2, 0x00FF
+    andi s3, s3, 0x00FF
     or t5, zero, s3                 // 存高八位
     sll t5, t5, 8                   // 左移
     or t5, t5, s2                   // 存八位
@@ -88,7 +88,37 @@ READSERIALWORD:
     sll t5, t5, 8                   // 左移
     or t5, t5, s0                   // 存低八位
 
-    LOAD ra, 0x0(sp)                  // 恢复ra,s0
+    mv t4, t5                       // t4 保存最终结果
+
+#ifdef RV64
+    jal READSERIAL                  // 读串口获得八个比特
+    or s0, zero, t5                 // 结果存入s0
+    jal READSERIAL                  // 读串口获得八个比特
+    or s1, zero, t5                 // 结果存入s1
+    jal READSERIAL                  // 读串口获得八个比特
+    or s2, zero, t5                 // 结果存入s2
+    jal READSERIAL                  // 读串口获得八个比特
+    or s3, zero, t5                 // 结果存入s3
+
+    andi s0, s0, 0x00FF             // 截取低八位
+    andi s1, s1, 0x00FF
+    andi s2, s2, 0x00FF
+    andi s3, s3, 0x00FF
+    or t6, zero, s3                 // 存高八位
+    sll t6, t6, 8                   // 左移
+    or t6, t6, s2                   // 存八位
+    sll t6, t6, 8                   // 左移
+    or t6, t6, s1                   // 存八位
+    sll t6, t6, 8                   // 左移
+    or t6, t6, s0                   // 存低八位
+
+    sll t6, t6, 32                  // 合并高位到低位
+    or t4, t4, t6
+#endif
+
+    mv t5, t4                       // 返回值在 t5
+
+    LOAD ra, 0x0(sp)                // 恢复ra,s0
     LOAD s0, XLEN(sp)
     LOAD s1, 2*XLEN(sp)
     LOAD s2, 3*XLEN(sp)

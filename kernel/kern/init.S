@@ -34,8 +34,6 @@ PTESTACK:
 
     .text
     .p2align 2
-//monitor_version:
-//    .asciz "MONITOR for RISC-V - initialized."
 
     /* start address for the .bss section. defined in linker script */
     .word   _sbss

@@ -90,7 +90,7 @@ SHELL:
     STORE s2, XLEN(sp)
 
     la s1, uregs
-    ori s2, zero, 124               // 计数器，打印124字节
+    ori s2, zero, 32*XLEN               // 计数器，打印124字节
 .LC0:
     lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
@@ -164,10 +164,11 @@ SHELL:
 */
 
     la ra, uregs              // 定位用户空间寄存器备份地址
-    STORE t5, PUTREG(1)(ra)           // 保存用户程序入口
-    STORE sp, PUTREG(32)(ra)           // 保存栈指针
+    STORE t5, PUTREG(32)(ra)           // 保存用户程序入口
+    STORE sp, PUTREG(33)(ra)           // 保存栈指针
 
-    LOAD x1,  PUTREG(1)(ra)
+    // ra
+    // LOAD x1,  PUTREG(1)(ra)
     LOAD x2,  PUTREG(2)(ra)          // 装入x2-x31
     LOAD x3,  PUTREG(3)(ra)
     LOAD x4,  PUTREG(4)(ra)
@@ -215,8 +216,8 @@ SHELL:
 .USERRET2:
     la ra, uregs              // 定位用户空间寄存器备份地址
 
-    STORE x1,  PUTREG(1)(ra)
-    STORE x2,  PUTREG(2)(ra)           // 备份x2-x31
+    STORE x1,  PUTREG(1)(ra)           // 备份x1-x31
+    STORE x2,  PUTREG(2)(ra)
     STORE x3,  PUTREG(3)(ra)
     STORE x4,  PUTREG(4)(ra)
     STORE x5,  PUTREG(5)(ra)
@@ -247,7 +248,7 @@ SHELL:
     STORE x30, PUTREG(30)(ra)
     STORE x31, PUTREG(31)(ra)
 
-    LOAD sp, PUTREG(32)(ra)           // 重新获得当前监控程序栈顶指针
+    LOAD sp, PUTREG(33)(ra)           // 重新获得当前监控程序栈顶指针
     ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
     jal WRITESERIAL                 // 告诉终端用户程序结束运行
 

@@ -41,8 +41,8 @@ SECTIONS
     .rodata : {
         *(.rodata)
     }
-    PROVIDE(uregs_sp = uregs + (2 - 1) * 4);
-    PROVIDE(uregs_fp = uregs + (8 - 1) * 4);
+    PROVIDE(uregs_sp = uregs + (2 - 1) * 8);
+    PROVIDE(uregs_fp = uregs + (8 - 1) * 8);
     . = 0x80000000;
     .text.init : {
         KEEP (*(.text.init))
