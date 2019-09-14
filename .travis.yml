@@ -4,7 +4,7 @@ before_install:
   - sudo pip3 install pyserial
   - curl https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz > toolchain.tar.gz
   - tar -xf toolchain.tar.gz
-  - wget https://download.qemu.org/qemu-4.1.0.tar.xz && tar xJf qemu-4.1.0.tar.xz > /dev/null && cd qemu-4.1.0 && ./configure --target-list=$ARCH-softmmu && make && cd ..;
+  - wget https://download.qemu.org/qemu-4.1.0.tar.xz && tar xJf qemu-4.1.0.tar.xz > /dev/null && cd qemu-4.1.0 && ./configure --target-list="riscv32-softmmu riscv64-softmmu" && make && cd ..;
 
 script:
   - export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
