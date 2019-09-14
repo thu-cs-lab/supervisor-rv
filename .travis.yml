@@ -34,10 +34,11 @@ deploy:
   api_key:
     secure: WY7JLy11O4ZVIFzMb8yl/IMyqovZm3ockNFzaDSeAuTENn+lQwvzTuNNke+kWAOeQUM+Iez5BNgK1wUN0j32hlY29ye7nMvCF+deHSeX3sXP1rPeo9PuxdLjIRiM3CBF6r57/N9oQjeRyT8bZjMQjsDSmlSt0a0BtU5Vhl2+idAfUwvXCFDdFidF61p+YeeHDr8FJmk4WUYRkwPna++xiYNEzRVpmp9hpD1KIAop676syQQAFETLDYExSZ4mOP7pbNnNfqJDq6Hs57KQVha0/KgKhIpLqYsjymQeOWDhPe6XfwpV3yr2R8OA10lNsRFnRmbDlqHAEWCeZu+Q7w1TxQZeHya4hP13FesOARAbHMIFlA9Iqa2lwlkIKm5L+R33sOd4hKx+rK/NQpN5UZOu8Hvp8yZ0bFbd71mlzMjnG5ODdi1rxNtc7Ss88DR+Mpra9uHcU6XgL0qmZQnrgXnBEas5fMKLQJNDY7w+rOINVEmiM53w7uET5dvHiN5FDXr6DX+L+vjfL93VOjIqXSCjHGig1GmPxyfb3cqcIIS/tkmtzFX17HF8V4Uzt9f2V+K4vUo1JR4MskmTD+E1bATDMCUL08B74SfsMsZUOv3BIhT4HC1hbbZeMBhs2R4jnuMFlcMzsrZmKGEr4qqviAnwpsNElO/NDuQgQp/2HZcZThk=
   skip_cleanup: true
-  file: kernel/kernel32-qemu.bin
-  file: kernel/kernel32-fpga.bin
-  file: kernel/kernel64-qemu.bin
-  file: kernel/kernel64-fpga.bin
+  file:
+    - kernel/kernel32-qemu.bin
+    - kernel/kernel32-fpga.bin
+    - kernel/kernel64-qemu.bin
+    - kernel/kernel64-fpga.bin
   on:
     repo: jiegec/supervisor-rv
     tags: true
