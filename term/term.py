@@ -36,6 +36,9 @@ CMD_BINARY_COPY = CCPREFIX + 'objcopy'
 Reg_alias = ['zero', 'AT', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 's0', 
                 's1', 's2', 's3', 's4', 's5', 's6', 's7', 't8', 't9/jp', 'k0', 'k1', 'gp', 'sp', 'fp/s8', 'ra']
 
+xlen = 4
+arch = 'rv32'
+
 def test_programs():
     tmp = tempfile.NamedTemporaryFile()
     for prog in [CMD_ASSEMBLER, CMD_DISASSEMBLER, CMD_BINARY_COPY]:
@@ -62,7 +65,7 @@ def int_to_byte_string(val):
 def byte_string_to_int(val):
     return struct.unpack('<I', val)[0]
 
-# invoke assembler to compile instructions (in little endian RV32)
+# invoke assembler to compile instructions (in little endian RV32/64)
 # returns a byte string of encoded instructions, from lowest byte to highest byte
 # returns empty string on failure (in which case assembler messages are printed to stdout)
 def multi_line_asm(instr):
@@ -107,7 +110,7 @@ def single_line_disassmble(binary_instr, addr):
     raw_output = subprocess.check_output([
         CMD_DISASSEMBLER, '-D', '-b', 'binary',
         '--adjust-vma=' + str(addr),
-        '-m', 'riscv:rv32', tmp_binary.name])
+        '-m', 'riscv:{}'.format(arch), tmp_binary.name])
     # the last line should be something like:
     #    0:   21107f00        addu    v0,v1,ra
     result = raw_output.strip().split(b'\n')[-1].split(None, 2)[-1]
@@ -287,11 +290,27 @@ def InitializeSerial(pipe_path, baudrate):
     return True
 
 def Main(welcome_message=True):
-    #debug
-    # welcome_message = False
+    global xlen, arch
+
     if welcome_message:
         output_binary(inp.read(33))
         print('')
+
+    # probe xlen
+    outp.write(b'W')
+    while True:
+        xlen = ord(inp.read(1))
+        if xlen == 4:
+            print('running in 32bit')
+            arch = 'rv32'
+            break
+        elif xlen == 8:
+            print('running in 64bit')
+            arch = 'rv64'
+            break
+        elif xlen < 20:
+            print('Got unexpected XLEN: {}'.format(xlen))
+            sys.exit(1)
     MainLoop()
 
 class tcp_wrapper:
@@ -368,7 +387,7 @@ def InitializeTCP(host_port):
 if __name__ == "__main__":
     # para = '127.0.0.1:6666' if len(sys.argv) != 2 else sys.argv[1]
 
-    parser = argparse.ArgumentParser(description = 'Term for rv32 expirence.')
+    parser = argparse.ArgumentParser(description = 'Term for rv32/64 expirence.')
     parser.add_argument('-c', '--continued', action='store_true', help='Term will not wait for welcome if this flag is set')
     parser.add_argument('-t', '--tcp', default=None, help='TCP server address:port for communication')
     parser.add_argument('-s', '--serial', default=None, help='Serial port name (e.g. /dev/ttyACM0, COM3)')

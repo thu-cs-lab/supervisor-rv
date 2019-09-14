@@ -1,10 +1,16 @@
 language: c
+
+cache:
+  cargo: true
+  directories:
+    - $TRAVIS_BUILD_DIR/qemu-4.1.0
+
 before_install:
   - sudo apt-get install -yy expect python3-pip
   - sudo pip3 install pyserial
   - curl https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz > toolchain.tar.gz
   - tar -xf toolchain.tar.gz
-  - wget https://download.qemu.org/qemu-4.1.0.tar.xz && tar xJf qemu-4.1.0.tar.xz > /dev/null && cd qemu-4.1.0 && ./configure --target-list=$ARCH-softmmu && make && cd ..;
+  - wget https://download.qemu.org/qemu-4.1.0.tar.xz && tar xJf qemu-4.1.0.tar.xz > /dev/null && cd qemu-4.1.0 && ./configure --target-list="riscv32-softmmu riscv64-softmmu" && make && cd ..;
 
 script:
   - export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
@@ -17,7 +23,7 @@ script:
   - cp kernel/kernel.bin kernel/kernel64-fpga.bin
   - make GCCPREFIX=riscv64-unknown-elf- ON_FPGA=n BITS=64 -C kernel/
   - cp kernel/kernel.bin kernel/kernel64-qemu.bin
-  - travis_wait 2 make EN_INT=y EN_TLB=y sim -C kernel || true
+  - travis_wait 2 make GCCPREFIX=riscv64-unknown-elf- ON_FPGA=n BITS=32 sim -C kernel || true
   - "./.test-script"
 addons:
   apt:

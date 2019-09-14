@@ -8,15 +8,15 @@
 
 WRITESERIAL:                        // 写串口：将a0的低八位写入串口
 #ifdef MACH_FPGA
-    lui t1, %hi(SerialStat)
+    la t1, SerialStat
 .TESTW:
-    lb t0, %lo(SerialStat)(t1)      // 查看串口状态
+    lb t0, 0(t1)      // 查看串口状态
     andi t0, t0, 0x0001             // 截取写状态位
     bne t0, zero, .WSERIAL          // 状态位非零可写进入写
     j .TESTW                        // 检测验证，忙等待
 .WSERIAL:
-    lui t1, %hi(SerialData)
-    sb a0, %lo(SerialData)(t1)      // 写入寄存器a0中的值
+    la t1, SerialData
+    sb a0, 0(t1)      // 写入寄存器a0中的值
     jr ra
 #else
     la t1, COM_LSR_THRE
