@@ -40,3 +40,4 @@ deploy:
   file: kernel/kernel64-fpga.bin
   on:
     repo: jiegec/supervisor-rv
+    tags: true
