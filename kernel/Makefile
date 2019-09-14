@@ -33,9 +33,15 @@ else
 endif
 ASFLAGS += $(MACH_DEF)
 
+CONFIG_FILE := .config_$(ON_FPGA)_$(BITS)
+
 .PHONY: all clean show-utest sim debug
 
 all: checkdirs $(TARGET) kernel.bin kernel.asm
+
+$(CONFIG_FILE):
+	@rm -f .config_*
+	touch $@
 
 $(TARGET): $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
@@ -45,7 +51,7 @@ checkdirs: $(OBJDIR)
 $(OBJDIR):
 	test -d $@ || mkdir $@
 
-$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S
+$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S $(CONFIG_FILE)
 	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAGS)
 
 kernel.bin: $(TARGET)
