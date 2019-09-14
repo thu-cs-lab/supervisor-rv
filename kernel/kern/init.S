@@ -1,7 +1,5 @@
+#include <common.h>
 #include <exception.h>
-
-//.set noreorder
-//.set noat
 
     .section .bss
     .p2align 2
@@ -45,10 +43,8 @@ PTESTACK:
     .word   _ebss
     .global START
 START:
-    lui s10, %hi(_sbss)
-    addi s10, s10, %lo(_sbss)
-    lui s11, %hi(_ebss)
-    addi s11, s11, %lo(_ebss)
+    la s10, _sbss
+    la s11, _ebss
 bss_init:
     beq s10, s11, bss_init_done
     sw  zero, 0(s10)
@@ -81,15 +77,13 @@ bss_init_done:
     mtc0 t0, CP0_CAUSE              // 关闭中断特殊入口
 #endif
 */
-    lui sp, %hi(KERNEL_STACK_INIT)  // 设置内核栈
-    addi sp, sp, %lo(KERNEL_STACK_INIT)
+    la sp, KERNEL_STACK_INIT         // 设置内核栈
     or s0, sp, zero
-    lui t0, %hi(USER_STACK_INIT)    // 设置用户栈
-    addi t0, t0, %lo(USER_STACK_INIT)
-    lui t1, %hi(uregs_sp)           // 写入用户空间备份
-    sw t0, %lo(uregs_sp)(t1)
-    lui t1, %hi(uregs_fp)
-    sw t0, %lo(uregs_fp)(t1)
+    la t0, USER_STACK_INIT          // 设置用户栈
+    la t1, uregs_sp
+    STORE t0, 0(t1)                 // 写入用户空间备份
+    la t1, uregs_fp
+    STORE t0, 0(t1)
 
     /* init serial */
 #ifdef MACH_FPGA
@@ -126,11 +120,10 @@ bss_init_done:
 .LC0:
     addi t0, t0, -1                // 滚动计数器
     addi sp, sp, -4                // 移动栈指针
-    sw zero, 0(sp)                  // 初始化栈空间
+    STORE zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC0              // 初始化循环
-    lui t0, %hi(TCBT)
-    addi t0, t0, %lo(TCBT)           // 载入TCBT地址
-    sw sp, 0(t0)                    // thread0(idle)的中断帧地址设置
+    la t0, TCBT           // 载入TCBT地址
+    STORE sp, 0(t0)                    // thread0(idle)的中断帧地址设置
 /*
 #ifdef ENABLE_INT
     mfc0 t1, CP0_STATUS             // 取STATUS
@@ -145,22 +138,20 @@ bss_init_done:
 */
     or t6, sp, zero                 // t6保存idle中断帧位置
 
-    ori t0, zero, TF_SIZE / 4       // 计数器
+    ori t0, zero, TF_SIZE / XLEN     // 计数器
 .LC1:
     addi t0, t0, -1                // 滚动计数器
-    addi sp, sp, -4                // 移动栈指针
-    sw zero, 0(sp)                  // 初始化栈空间
+    addi sp, sp, -XLEN              // 移动栈指针
+    STORE zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC1              // 初始化循环
-    lui t0, %hi(TCBT)
-    addi t0, t0, %lo(TCBT)           // 载入TCBT地址
-    sw sp, 4(t0)                    // thread1(shell/user)的中断帧地址设置
-    sw sp, TF_sp(t6)                // 设置idle线程栈指针(调试用?)
+    la t0, TCBT                     // 载入TCBT地址
+    STORE sp, XLEN(t0)                    // thread1(shell/user)的中断帧地址设置
+    STORE sp, TF_sp(t6)                // 设置idle线程栈指针(调试用?)
 
-    lui t2, %hi(TCBT + 4)
-    addi t2, t2, %lo(TCBT + 4)
+    la t2, TCBT + XLEN
     lw t2, 0(t2)                    // 取得thread1的TCB地址
-    lui t1, %hi(current)
-    sw t2, %lo(current)(t1)         // 设置当前线程为thread1
+    la t1, current                 // 设置当前线程为thread1
+    sw t2, 0(t1)
 
 /*
 #ifdef ENABLE_TLB                   // 打开TLB机制
@@ -281,9 +272,6 @@ bss_init_done:
 */
 
     j WELCOME                       // 进入主线程
-    nop
-
-
 
 WELCOME:
 /*
@@ -300,106 +288,72 @@ WELCOME:
 */
     ori a0, zero, 0x4d              // 'M'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x4f              // 'O'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x4e              // 'N'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x49              // 'I'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x54              // 'T'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x4f              // 'O'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x52              // 'R'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x20              // ' '
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x66              // 'f'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x6f              // 'o'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x72              // 'r'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x20              // ' '
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x52              // 'R'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x49              // 'I'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x53              // 'S'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x43              // 'C'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x2d              // '-'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x56              // 'v'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x20              // ' '
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x2d              // '-'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x20              // ' '
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x69              // 'i'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x6e              // 'n'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x69              // 'i'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x74              // 't'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x69              // 'i'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x61              // 'a'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x6c              // 'l'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x69              // 'i'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x7a              // 'z'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x65              // 'e'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x64              // 'd'
     jal WRITESERIAL
-    nop
     ori a0, zero, 0x2e              // '.'
     jal WRITESERIAL
-    nop
 
     j SHELL                         // 开始交互
-    nop
 
 IDLELOOP:
     nop

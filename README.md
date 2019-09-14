@@ -1,16 +1,16 @@
-# supervisor-rv32： RISC-V 32位监控程序
+# supervisor-rv： RISC-V 监控程序
 
-[![Build Status](https://travis-ci.org/jiegec/supervisor-rv32.svg?branch=master)](https://travis-ci.org/jiegec/supervisor-rv32)
+[![Build Status](https://travis-ci.org/jiegec/supervisor-rv.svg?branch=master)](https://travis-ci.org/jiegec/supervisor-rv)
 
 ## 介绍
 
-Thinpad 教学计算机搭配了监控程序，能够接受用户命令，支持输入汇编指令并运行，查看寄存器及内存状态等功能。监控程序可在学生实现的 32 位 RISC-V CPU 上运行，一方面可以帮助学生理解、掌握 RISC-V 指令系统及其软件开发，另一方面可以作为验证学生 CPU 功能正确性的标准。
+Thinpad 教学计算机搭配了监控程序，能够接受用户命令，支持输入汇编指令并运行，查看寄存器及内存状态等功能。监控程序可在学生实现的 32/64 位 RISC-V CPU 上运行，一方面可以帮助学生理解、掌握 RISC-V 指令系统及其软件开发，另一方面可以作为验证学生 CPU 功能正确性的标准。
 
-监控程序分为两个部分，Kernel 和 Term。其中 Kernel 使用 RISC-V32 汇编语言编写，运行在 Thinpad 上学生实现的 CPU 中，用于管理硬件资源；Term 是上位机程序，使用 Python 语言编写，有基于命令行的用户界面，达到与用户交互的目的。Kernel 和 Term 直接通过串口通信，即用户在 Term 界面中输入的命令、代码经过 Term 处理后，通过串口传输给 Kernel 程序；反过来，Kernel 输出的信息也会通过串口传输到 Term，并展示给用户。
+监控程序分为两个部分，Kernel 和 Term。其中 Kernel 使用 RISC-V 汇编语言编写，运行在 Thinpad 上学生实现的 CPU 中，用于管理硬件资源；Term 是上位机程序，使用 Python 语言编写，有基于命令行的用户界面，达到与用户交互的目的。Kernel 和 Term 直接通过串口通信，即用户在 Term 界面中输入的命令、代码经过 Term 处理后，通过串口传输给 Kernel 程序；反过来，Kernel 输出的信息也会通过串口传输到 Term，并展示给用户。
 
 ## Kernel
 
-Kernel 使用汇编语言编写，使用到的指令有20余条，均符合 RISC-V32 规范。Kernel 提供了三种不同的版本，以适应不同的档次的 CPU 实现。它们分别是：第一档为基础版本，直接基本的I/O和命令执行功能，不依赖异常、中断、CP0等处理器特征，适合于最简单的 CPU 实现；第二档支持中断，使用中断方式完成串口的I/O功能，需要处理器实现中断处理机制，及相关的CP0处理器；第三档在第二档基础上进一步增加了TLB的应用，要求处理器支持基于 TLB 的内存映射，更加接近于操作系统对处理器的需求。
+Kernel 使用汇编语言编写，使用到的指令有20余条，均符合 RISC-V 规范。Kernel 提供了三种不同的版本，以适应不同的档次的 CPU 实现。它们分别是：第一档为基础版本，直接基本的I/O和命令执行功能，不依赖异常、中断、CP0等处理器特征，适合于最简单的 CPU 实现；第二档支持中断，使用中断方式完成串口的I/O功能，需要处理器实现中断处理机制，及相关的CP0处理器；第三档在第二档基础上进一步增加了TLB的应用，要求处理器支持基于 TLB 的内存映射，更加接近于操作系统对处理器的需求。
 
 为了在硬件上运行 Kernel 程序，我们首先要对 Kernel 的汇编代码进行编译。
 
@@ -28,7 +28,7 @@ Kernel 使用汇编语言编写，使用到的指令有20余条，均符合 RISC
 
 `make ON_FPGA=y`
 
-编译用于硬件的 `kernel.bin`。使用开发板提供的工具，将 `kernel.bin` 写入内存 0 地址（物理地址）位置，并让处理器复位从 0x8000000 地址（RISC-V32中对应物理地址为0的虚地址）处开始执行，Kernel 就运行起来了。
+编译用于硬件的 `kernel.bin`。使用开发板提供的工具，将 `kernel.bin` 写入内存 0 地址（物理地址）位置，并让处理器复位从 0x8000000 地址（RISC-V中对应物理地址为0的虚地址）处开始执行，Kernel 就运行起来了。
 
 Kernel 运行后会先通过串口输出版本号，该功能可作为检验其正常运行的标志。之后 Kernel 将等待 Term 从串口发来的命令，关于 Term 的使用将在后续章节描述。
 
@@ -59,7 +59,7 @@ SW    iiiiiiiSSSSSsssss010iiiii0100011
 XOR   0000000SSSSSsssss100ddddd0110011
 ```
 
-根据 RISC-V32 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
+根据 RISC-V 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
 
 监控程序使用了 8 MB 的内存空间，其中约 1 MB 由 Kernel 使用，剩下的空间留给用户程序。此外，为了支持串口通信，还设置了一个内存以外的地址区域，用于串口收发。具体内存地址的分配方法如下表所示：
 
@@ -206,7 +206,7 @@ Term 程序位于`term`文件夹中，可执行文件为`term.py`。对于本地
 
 以下是一次输入用户程序并运行的过程演示：
 
-	MONITOR for RISC-V32 - initialized.
+	MONITOR for RISC-V - initialized.
 	>> a
 	>> addr: 0x80100000
 	one instruction per line, empty line to end.
@@ -292,8 +292,8 @@ Term 程序位于`term`文件夹中，可执行文件为`term.py`。对于本地
 
 ## 参考文献
 
-- CPU采用的 RISC-V 32 指令集标准：The RISC-V Instruction Set Manual Volume I: User-Level ISA Document
-- RISC-V32 中断及TLB等特权态资源：The RISC-V Instruction Set Manual Volume II: Privileged Architecture
+- CPU采用的 RISC-V 指令集标准：The RISC-V Instruction Set Manual Volume I: User-Level ISA Document
+- RISC-V 中断及TLB等特权态资源：The RISC-V Instruction Set Manual Volume II: Privileged Architecture
 
 ## 项目作者
 

@@ -1,6 +1,4 @@
-#include <regdef.h>
-#include <mipsregs.h>
-#include <shell.h>
+#include <common.h>
 
     //.set noreorder
     //.set noat
@@ -41,9 +39,9 @@ SHELL:
 
 .OP_T:                              // 操作 - 打印TLB项
     jal READSERIALWORD              // 取num(index)
-    addi sp, sp, -0x18
-    sw s1, 0x0(sp)
-    sw s2, 0x4(sp)
+    addi sp, sp, -6*XLEN
+    sw s1, 0(sp)
+    sw s2, XLEN(sp)
 
 /*
 #ifdef ENABLE_TLB
@@ -63,9 +61,9 @@ SHELL:
 #else
 */
     addi s1, zero, -1               // 不支持TLB则返回全1
-    sw s1, 0xC(sp)
-    sw s1, 0x10(sp)
-    sw s1, 0x14(sp)
+    sw s1, 3*XLEN(sp)
+    sw s1, 4*XLEN(sp)
+    sw s1, 5*XLEN(sp)
 /*
 #endif
 */
@@ -85,28 +83,28 @@ SHELL:
     j .DONE
 
 .OP_R:                              // 操作 - 打印用户空间寄存器
-    addi sp, sp, -8                 // 保存s1,s2
-    sw s1, 0(sp)
-    sw s2, 4(sp)
+    addi sp, sp, -2*XLEN                 // 保存s1,s2
+    STORE s1, 0(sp)
+    STORE s2, XLEN(sp)
 
-    lui s1, %hi(uregs)
+    la s1, uregs
     ori s2, zero, 124               // 计数器，打印124字节
 .LC0:
-    lb a0, %lo(uregs)(s1)           // 读取字节
+    lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
     jal WRITESERIAL                 // 写入串口
     addi s1, s1, 0x1                // 移动打印指针
     bne s2, zero, .LC0              // 打印循环
 
-    lw s1, 0(sp)                    // 恢复s1,s2
-    lw s2, 4(sp)
-    addi sp, sp, 8
+    LOAD s1, 0(sp)                    // 恢复s1,s2
+    LOAD s2, XLEN(sp)
+    addi sp, sp, 2*XLEN
     j .DONE
 
 .OP_D:                              // 操作 - 打印内存num字节
-    addi sp, sp, -8                 // 保存s1,s2
-    sw s1, 0(sp)
-    sw s2, 4(sp)
+    addi sp, sp, -2*XLEN                 // 保存s1,s2
+    STORE s1, 0(sp)
+    STORE s2, XLEN(sp)
 
     jal READSERIALWORD
     or s1, t5, zero                 // 获得addr
@@ -120,15 +118,15 @@ SHELL:
     addi s1, s1, 0x1                // 移动打印指针
     bne s2, zero, .LC1              // 打印循环
 
-    lw s1, 0(sp)                    // 恢复s1,s2
-    lw s2, 4(sp)
-    addi sp, sp, 8
+    LOAD s1, 0(sp)                    // 恢复s1,s2
+    LOAD s2, XLEN(sp)
+    addi sp, sp, 2*XLEN
     j .DONE
 
 .OP_A:                              // 操作 - 写入内存num字节，num为4的倍数
-    addi sp, sp, -8                 // 保存s1,s2
-    sw s1, 0(sp)
-    sw s2, 4(sp)
+    addi sp, sp, -2*XLEN                 // 保存s1,s2
+    STORE s1, 0(sp)
+    STORE s2, 4(sp)
 
     jal READSERIALWORD
     or s1, t5, zero                 // 获得addr
@@ -142,9 +140,9 @@ SHELL:
     addi s1, s1, 4                  // 移动写指针
     bne s2, zero, .LC2              // 写循环
 
-    lw s1, 0(sp)                    // 恢复s1,s2
-    lw s2, 4(sp)
-    addi sp, sp, 8
+    LOAD s1, 0(sp)                    // 恢复s1,s2
+    LOAD s2, XLEN(sp)
+    addi sp, sp, 2*XLEN
     j .DONE
 
 .OP_G:
@@ -163,8 +161,7 @@ SHELL:
 #endif
 */
 
-    lui ra, %hi(uregs)              // 定位用户空间寄存器备份地址
-    addi ra, ra, %lo(uregs)
+    la ra, uregs              // 定位用户空间寄存器备份地址
     sw t5, PUTREG(1)(ra)           // 保存用户程序入口
     sw sp, PUTREG(32)(ra)           // 保存栈指针
 
@@ -200,8 +197,7 @@ SHELL:
     lw x30, PUTREG(30)(ra)
     lw x31, PUTREG(31)(ra)
 
-    lui ra, %hi(.USERRET2)          // ra写入返回地址
-    addi ra, ra, %lo(.USERRET2)
+    la ra, .USERRET2          // ra写入返回地址
 
 /*
 #ifdef ENABLE_INT
@@ -214,8 +210,7 @@ SHELL:
 */
 
 .USERRET2:
-    lui ra, %hi(uregs)              // 定位用户空间寄存器备份地址
-    addi ra, ra, %lo(uregs)
+    la ra, uregs              // 定位用户空间寄存器备份地址
 
     //sw x1,  PUTREG(1)(ra)
     sw x2,  PUTREG(2)(ra)           // 备份x2-x31

@@ -1,9 +1,5 @@
-//#include <regdef.h>
-//#include <mipsregs.h>
-//#include <unistd.h>
+#include <common.h>
 
-//    .set noreorder
-//    .set noat
     .p2align 2
     .text
     .global WRITESERIAL
@@ -64,12 +60,12 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
 #endif //ifdef MACH_FPGA
 
 READSERIALWORD:
-    addi sp, sp, -0x14             // 保存ra,s0
-    sw ra, 0x0(sp)
-    sw s0, 0x4(sp)
-    sw s1, 0x8(sp)
-    sw s2, 0xC(sp)
-    sw s3, 0x10(sp)
+    addi sp, sp, -5*XLEN             // 保存ra,s0
+    STORE ra, 0x0(sp)
+    STORE s0, XLEN(sp)
+    STORE s1, 2*XLEN(sp)
+    STORE s2, 3*XLEN(sp)
+    STORE s3, 4*XLEN(sp)
 
     jal READSERIAL                  // 读串口获得八个比特
     or s0, zero, t5                 // 结果存入s0
@@ -92,10 +88,10 @@ READSERIALWORD:
     sll t5, t5, 8                   // 左移
     or t5, t5, s0                   // 存低八位
 
-    lw ra, 0x0(sp)                  // 恢复ra,s0
-    lw s0, 0x4(sp)
-    lw s1, 0x8(sp)
-    lw s2, 0xC(sp)
-    lw s3, 0x10(sp)
-    addi sp, sp, 0x14
+    LOAD ra, 0x0(sp)                  // 恢复ra,s0
+    LOAD s0, XLEN(sp)
+    LOAD s1, 2*XLEN(sp)
+    LOAD s2, 3*XLEN(sp)
+    LOAD s3, 4*XLEN(sp)
+    addi sp, sp, 5*XLEN
     jr ra

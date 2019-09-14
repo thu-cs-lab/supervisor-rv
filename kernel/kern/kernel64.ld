@@ -1,0 +1,63 @@
+ENTRY(START)
+OUTPUT(kernel.elf)
+OUTPUT_ARCH("riscv:rv64")
+OUTPUT_FORMAT("elf64-littleriscv")
+
+PROVIDE(SerialData = 0xBFD003F8);
+PROVIDE(SerialStat = 0xBFD003FC);
+
+/* Qemu serial constants */
+PROVIDE(COM1 = 0x10000000);
+PROVIDE(COM_LSR = COM1 + 5);
+PROVIDE(COM_LSR_DR = 0x01); /* Data ready */
+PROVIDE(COM_LSR_THRE = 0x20); /* Transmit hold register empty */
+PROVIDE(COM_FCR = COM1 + 2);
+PROVIDE(COM_FCR_CONFIG = 0x7); /* FIFO Enable and FIFO Reset */
+PROVIDE(COM_LCR = COM1 + 3);
+PROVIDE(COM_LCR_DLAB = 0x80);
+PROVIDE(COM_DLL = COM1 + 0);
+PROVIDE(COM_DLL_VAL = 115200 / 9600);
+PROVIDE(COM_DLM = COM1 + 1);
+PROVIDE(COM_LCR_WLEN8 = 0x03);
+PROVIDE(COM_LCR_CONFIG = COM_LCR_WLEN8 & ~(COM_LCR_DLAB));
+PROVIDE(COM_MCR = COM1 + 4);
+PROVIDE(COM_IER = COM1 + 1);
+PROVIDE(COM_IER_RDI = 0x01);
+
+
+PROVIDE(KERNEL_STACK_INIT = 0x80800000);
+PROVIDE(USER_STACK_INIT = 0x807F0000);
+SECTIONS
+{
+    . = 0x807F0000;
+    .bss : {
+        _sbss = .;         /* define a global symbol at bss start */
+        *(.bss.uregs)
+        *(.bss)
+        *(.bss.ptes)
+        . = ALIGN(4);
+        _ebss = .;         /* define a global symbol at bss end */
+    }
+    .rodata : {
+        *(.rodata)
+    }
+    PROVIDE(uregs_sp = uregs + (2 - 1) * 4);
+    PROVIDE(uregs_fp = uregs + (8 - 1) * 4);
+    . = 0x80000000;
+    .text.init : {
+        KEEP (*(.text.init))
+    }
+    . = 0x80001000;
+    .text.ebase : {
+        KEEP (*(.text.ebase))
+    }
+    . = 0x80001180;
+    .text.ebase180 : {
+        KEEP (*(.text.ebase180))
+    }
+    .text : {
+        *(.text)
+        . = ALIGN(0x1000); /* "fixed" utest address */
+        *(.text.utest)
+    }
+}
