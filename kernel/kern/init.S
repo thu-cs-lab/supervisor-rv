@@ -87,9 +87,9 @@ bss_init_done:
 
     /* init serial */
 #ifdef MACH_FPGA
-    lui t0, %hi(SerialStat)
+    la t0, SerialStat
     ori t1, zero, 0x10
-    sb t1, %lo(SerialStat)(t0)      // 串口可读中断
+    sb t1, 0(t0)      // 串口可读中断
 #else
     /* see ucore/kern/driver/console.c */
     lui t0, %hi(COM1)               // all COM_* shares the same %hi
