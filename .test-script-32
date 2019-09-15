@@ -74,7 +74,6 @@ expect "elapsed time" {} timeout {exit 1}
 expect ">>"
 send "R\n"
 expect -re "R2.+0x00000005"  {} timeout {exit 1}
-expect -re "R3.+0x00000005"  {} timeout {exit 1}
 
 # TLB required
 #expect ">>"

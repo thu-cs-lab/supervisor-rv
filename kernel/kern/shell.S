@@ -105,9 +105,9 @@ SHELL:
     STORE s1, 0(sp)
     STORE s2, XLEN(sp)
 
-    jal READ_SERIAL_WORD
+    jal READ_SERIAL_XLEN
     or s1, a0, zero                 // 获得addr
-    jal READ_SERIAL_WORD
+    jal READ_SERIAL_XLEN
     or s2, a0, zero                 // 获得num
 
 .LC1:
@@ -127,9 +127,9 @@ SHELL:
     STORE s1, 0(sp)
     STORE s2, 4(sp)
 
-    jal READ_SERIAL_WORD
+    jal READ_SERIAL_XLEN
     or s1, a0, zero                 // 获得addr
-    jal READ_SERIAL_WORD
+    jal READ_SERIAL_XLEN
     or s2, a0, zero                 // 获得num
     srl s2, s2, 2                   // num除4，获得字数
 .LC2:                               // 每次写入一字
@@ -145,7 +145,7 @@ SHELL:
     j .DONE
 
 .OP_G:
-    jal READ_SERIAL_WORD            // 获取addr
+    jal READ_SERIAL_XLEN            // 获取addr
     mv s10, a0                      // 保存到 s10
 
     ori a0, zero, TIMERSET          // 写TIMERSET(0x06)信号

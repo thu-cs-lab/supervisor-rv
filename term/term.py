@@ -58,7 +58,7 @@ def output_binary(binary):
     else:
         sys.stdout.write(binary)
 
-# convert 32-bit int to byte string of length 4, from LSB to MSB
+# convert int to byte string of length xlen, from LSB to MSB
 def int_to_byte_string(val):
     if xlen == 4:
         return struct.pack('<I', val)
@@ -70,6 +70,10 @@ def byte_string_to_int(val):
         return struct.unpack('<I', val)[0]
     else:
         return struct.unpack('<Q', val)[0]
+
+# convert 32-bit int to byte string of length 4, from LSB to MSB
+def byte_string_to_dword(val):
+    return struct.unpack('<I', val)[0]
 
 # invoke assembler to compile instructions (in little endian RV32/64)
 # returns a byte string of encoded instructions, from lowest byte to highest byte
@@ -181,7 +185,7 @@ def run_A(addr):
 
 def run_R():
     outp.write(b'R')
-    for i in range(1, 31):
+    for i in range(1, 32):
         val_raw = inp.read(xlen)
         val = byte_string_to_int(val_raw)
         print(('R{0}{1:7} = 0x{2:0>' + str(xlen * 2) +'x}').format(
@@ -202,7 +206,7 @@ def run_D(addr, num):
     while counter < num:
         val_raw = inp.read(4)
         counter = counter + 4
-        val = byte_string_to_int(val_raw)
+        val = byte_string_to_dword(val_raw)
         print('0x%08x: 0x%08x' % (addr,val))
         addr = addr + 4
 
@@ -217,7 +221,7 @@ def run_U(addr, num):
     counter = 0
     while counter < num:
         val_raw = inp.read(4)
-        val = byte_string_to_int(val_raw)
+        val = byte_string_to_dword(val_raw)
         print('0x%08x:\t%08x\t%s' % (addr, val, single_line_disassmble(val_raw, addr)))
         counter = counter + 4
         addr = addr + 4
