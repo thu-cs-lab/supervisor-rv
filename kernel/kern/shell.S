@@ -22,15 +22,15 @@ SHELL:
     jal READ_SERIAL                  // 读操作符
 
     ori t0, zero, 'R'
-    beq t5, t0, .OP_R
+    beq a0, t0, .OP_R
     ori t0, zero, 'D'
-    beq t5, t0, .OP_D
+    beq a0, t0, .OP_D
     ori t0, zero, 'A'
-    beq t5, t0, .OP_A
+    beq a0, t0, .OP_A
     ori t0, zero, 'G'
-    beq t5, t0, .OP_G
+    beq a0, t0, .OP_G
     ori t0, zero, 'T'
-    beq t5, t0, .OP_T
+    beq a0, t0, .OP_T
 
     li a0, XLEN                     // 错误的操作符，输出 XLEN，用于区分 RV32 和 RV64
     jal WRITE_SERIAL                 // 把 XLEN 写给 term
@@ -106,9 +106,9 @@ SHELL:
     STORE s2, XLEN(sp)
 
     jal READ_SERIAL_WORD
-    or s1, t5, zero                 // 获得addr
+    or s1, a0, zero                 // 获得addr
     jal READ_SERIAL_WORD
-    or s2, t5, zero                 // 获得num
+    or s2, a0, zero                 // 获得num
 
 .LC1:
     lb a0, 0(s1)                    // 读取字节
@@ -128,13 +128,13 @@ SHELL:
     STORE s2, 4(sp)
 
     jal READ_SERIAL_WORD
-    or s1, t5, zero                 // 获得addr
+    or s1, a0, zero                 // 获得addr
     jal READ_SERIAL_WORD
-    or s2, t5, zero                 // 获得num
+    or s2, a0, zero                 // 获得num
     srl s2, s2, 2                   // num除4，获得字数
 .LC2:                               // 每次写入一字
     jal READ_SERIAL_WORD              // 从串口读入一字
-    sw t5, 0(s1)                    // 写内存一字
+    sw a0, 0(s1)                    // 写内存一字
     addi s2, s2, -1                 // 滚动计数器
     addi s1, s1, 4                  // 移动写指针
     bne s2, zero, .LC2              // 写循环
@@ -145,23 +145,20 @@ SHELL:
     j .DONE
 
 .OP_G:
-    jal READ_SERIAL_WORD              // 获取addr
+    jal READ_SERIAL_WORD            // 获取addr
+    mv s10, a0                      // 保存到 s10
 
     ori a0, zero, TIMERSET          // 写TIMERSET(0x06)信号
     jal WRITE_SERIAL                 // 告诉终端用户程序开始运行
 
 /*
 #ifdef ENABLE_INT
-    mtc0 v0, CP0_EPC                // 用户程序入口写入EPC
-#else
-*/
-    or s10, t5, zero
-/*
+    mtc0 s10, CP0_EPC                // 用户程序入口写入EPC
 #endif
 */
 
     la ra, uregs              // 定位用户空间寄存器备份地址
-    STORE t5, PUTREG(32)(ra)           // 保存用户程序入口
+    STORE s10, PUTREG(32)(ra)          // 保存用户程序入口
     STORE sp, PUTREG(33)(ra)           // 保存栈指针
 
     // ra
