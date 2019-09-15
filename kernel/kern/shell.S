@@ -1,8 +1,5 @@
 #include <common.h>
 
-    //.set noreorder
-    //.set noat
-
     .section .bss.uregs
     .p2align 2
     .global uregs
@@ -22,25 +19,25 @@ uregs:
      *  用户程序入口临时存储：0x807F0000
      */
 SHELL:
-    jal READSERIAL                  // 读操作符
+    jal READ_SERIAL                  // 读操作符
 
-    ori t0, zero, SH_OP_R
-    beq t5, t0, .OP_R
-    ori t0, zero, SH_OP_D
-    beq t5, t0, .OP_D
-    ori t0, zero, SH_OP_A
-    beq t5, t0, .OP_A
-    ori t0, zero, SH_OP_G
-    beq t5, t0, .OP_G
-    ori t0, zero, SH_OP_T
-    beq t5, t0, .OP_T
+    ori t0, zero, 'R'
+    beq a0, t0, .OP_R
+    ori t0, zero, 'D'
+    beq a0, t0, .OP_D
+    ori t0, zero, 'A'
+    beq a0, t0, .OP_A
+    ori t0, zero, 'G'
+    beq a0, t0, .OP_G
+    ori t0, zero, 'T'
+    beq a0, t0, .OP_T
 
     li a0, XLEN                     // 错误的操作符，输出 XLEN，用于区分 RV32 和 RV64
-    jal WRITESERIAL                 // 把 XLEN 写给 term
+    jal WRITE_SERIAL                 // 把 XLEN 写给 term
     j .DONE                         
 
 .OP_T:                              // 操作 - 打印TLB项
-    jal READSERIALWORD              // 取num(index)
+    jal READ_SERIAL_WORD              // 取num(index)
     addi sp, sp, -6*XLEN
     sw s1, 0(sp)
     sw s2, XLEN(sp)
@@ -74,7 +71,7 @@ SHELL:
 .LC3:
     lb a0, 0x0(s1)                  // 读一字节
     addi s2, s2, -1                 // 滚动计数器
-    jal WRITESERIAL                 // 打印
+    jal WRITE_SERIAL                 // 打印
     addi s1, s1, 1                  // 移动打印指针
     bne s2, zero, .LC3              // 打印循环
 
@@ -94,7 +91,7 @@ SHELL:
 .LC0:
     lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
-    jal WRITESERIAL                 // 写入串口
+    jal WRITE_SERIAL                 // 写入串口
     addi s1, s1, 0x1                // 移动打印指针
     bne s2, zero, .LC0              // 打印循环
 
@@ -108,15 +105,15 @@ SHELL:
     STORE s1, 0(sp)
     STORE s2, XLEN(sp)
 
-    jal READSERIALWORD
-    or s1, t5, zero                 // 获得addr
-    jal READSERIALWORD
-    or s2, t5, zero                 // 获得num
+    jal READ_SERIAL_WORD
+    or s1, a0, zero                 // 获得addr
+    jal READ_SERIAL_WORD
+    or s2, a0, zero                 // 获得num
 
 .LC1:
     lb a0, 0(s1)                    // 读取字节
     addi s2, s2, -1                 // 滚动计数器
-    jal WRITESERIAL                 // 写入串口
+    jal WRITE_SERIAL                 // 写入串口
     addi s1, s1, 0x1                // 移动打印指针
     bne s2, zero, .LC1              // 打印循环
 
@@ -130,14 +127,14 @@ SHELL:
     STORE s1, 0(sp)
     STORE s2, 4(sp)
 
-    jal READSERIALWORD
-    or s1, t5, zero                 // 获得addr
-    jal READSERIALWORD
-    or s2, t5, zero                 // 获得num
+    jal READ_SERIAL_WORD
+    or s1, a0, zero                 // 获得addr
+    jal READ_SERIAL_WORD
+    or s2, a0, zero                 // 获得num
     srl s2, s2, 2                   // num除4，获得字数
 .LC2:                               // 每次写入一字
-    jal READSERIALWORD              // 从串口读入一字
-    sw t5, 0(s1)                    // 写内存一字
+    jal READ_SERIAL_WORD              // 从串口读入一字
+    sw a0, 0(s1)                    // 写内存一字
     addi s2, s2, -1                 // 滚动计数器
     addi s1, s1, 4                  // 移动写指针
     bne s2, zero, .LC2              // 写循环
@@ -148,23 +145,20 @@ SHELL:
     j .DONE
 
 .OP_G:
-    jal READSERIALWORD              // 获取addr
+    jal READ_SERIAL_WORD            // 获取addr
+    mv s10, a0                      // 保存到 s10
 
     ori a0, zero, TIMERSET          // 写TIMERSET(0x06)信号
-    jal WRITESERIAL                 // 告诉终端用户程序开始运行
+    jal WRITE_SERIAL                 // 告诉终端用户程序开始运行
 
 /*
 #ifdef ENABLE_INT
-    mtc0 v0, CP0_EPC                // 用户程序入口写入EPC
-#else
-*/
-    or s10, t5, zero
-/*
+    mtc0 s10, CP0_EPC                // 用户程序入口写入EPC
 #endif
 */
 
     la ra, uregs              // 定位用户空间寄存器备份地址
-    STORE t5, PUTREG(32)(ra)           // 保存用户程序入口
+    STORE s10, PUTREG(32)(ra)          // 保存用户程序入口
     STORE sp, PUTREG(33)(ra)           // 保存栈指针
 
     // ra
@@ -250,7 +244,7 @@ SHELL:
 
     LOAD sp, PUTREG(33)(ra)           // 重新获得当前监控程序栈顶指针
     ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
-    jal WRITESERIAL                 // 告诉终端用户程序结束运行
+    jal WRITE_SERIAL                 // 告诉终端用户程序结束运行
 
     j .DONE
 
