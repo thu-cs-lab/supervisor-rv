@@ -1,5 +1,6 @@
 #include <common.h>
 #include <exception.h>
+#include <serial.h>
 
     .section .bss
     .p2align 2
@@ -84,26 +85,20 @@ bss_init_done:
     STORE t0, 0(t1)
 
     /* init serial */
-#ifdef MACH_FPGA
-    la t0, SerialStat
-    ori t1, zero, 0x10
-    sb t1, 0(t0)      // 串口可读中断
-#else
     /* see ucore/kern/driver/console.c */
     lui t0, %hi(COM1)               // all COM_* shares the same %hi
-    ori t1, zero, %lo(COM_FCR_CONFIG) // console.c:54
-    sb t1, %lo(COM_FCR)(t0)         // :57
-    ori t1, zero, %lo(COM_LCR_DLAB)
-    sb t1, %lo(COM_LCR)(t0)         // :57
-    ori t1, zero, %lo(COM_DLL_VAL)
-    sb t1, %lo(COM_DLL)(t0)         // :58
-    sb zero, %lo(COM_DLM)(t0)       // :59
-    ori t1, zero, %lo(COM_LCR_CONFIG)
-    sb t1, %lo(COM_LCR)(t0)         // :62
-    sb zero, %lo(COM_MCR)(t0)       // :65
-    ori t1, zero, %lo(COM_IER_RDI)
-    sb t1, %lo(COM_IER)(t0)         // :67
-#endif
+    li t1, COM_FCR_CONFIG           // console.c:54
+    sb t1, %lo(COM_FCR_OFFSET)(t0)  // :57
+    li t1, COM_LCR_DLAB
+    sb t1, %lo(COM_LCR_OFFSET)(t0)  // :57
+    li t1, COM_DLL_VAL
+    sb t1, %lo(COM_DLL_OFFSET)(t0)  // :58
+    sb x0, %lo(COM_DLM_OFFSET)(t0)  // :59
+    li t1, COM_LCR_CONFIG
+    sb t1, %lo(COM_LCR_OFFSET)(t0)  // :62
+    sb x0, %lo(COM_MCR_OFFSET)(t0)  // :65
+    li t1, COM_IER_RDI
+    sb t1, %lo(COM_IER_OFFSET)(t0)  // :67
 
 
 //#ifdef ENABLE_INT

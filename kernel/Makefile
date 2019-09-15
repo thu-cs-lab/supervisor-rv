@@ -1,7 +1,7 @@
 BITS := 32
 RM	:= rm -f
 # linux 下编译器的地址，可能根据不同的操作系统有所修改
-GCCPREFIX := /PATH/bin/riscv32-unknown-elf-
+GCCPREFIX := riscv64-unknown-elf-
 LD	:= $(GCCPREFIX)ld
 CC	:= $(GCCPREFIX)gcc
 AS  := $(GCCPREFIX)as
@@ -24,16 +24,7 @@ else
 	LDSCRIPT	:= kern/kernel64.ld
 endif
 
-override ON_FPGA ?= n
-
-ifeq ($(ON_FPGA), y)
-	MACH_DEF = -DMACH_FPGA
-else
-   	MACH_DEF = -DMACH_QEMU
-endif
-ASFLAGS += $(MACH_DEF)
-
-CONFIG_FILE := .config_$(ON_FPGA)_$(BITS)
+CONFIG_FILE := .config_$(BITS)
 
 .PHONY: all clean show-utest sim debug
 

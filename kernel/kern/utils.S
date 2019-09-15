@@ -1,4 +1,5 @@
 #include <common.h>
+#include <serial.h>
 
     .p2align 2
     .text
@@ -7,57 +8,32 @@
     .global READSERIALWORD
 
 WRITESERIAL:                        // 写串口：将a0的低八位写入串口
-#ifdef MACH_FPGA
-    la t1, SerialStat
+    lui t0, %hi(COM1)
 .TESTW:
-    lb t0, 0(t1)      // 查看串口状态
-    andi t0, t0, 0x0001             // 截取写状态位
-    bne t0, zero, .WSERIAL          // 状态位非零可写进入写
+    lb t1, %lo(COM_LSR_OFFSET)(t0)  // 查看串口状态
+    andi t1, t1, COM_LSR_THRE       // 截取写状态位
+    bne t1, zero, .WSERIAL          // 状态位非零可写进入写
     j .TESTW                        // 检测验证，忙等待
 .WSERIAL:
-    la t1, SerialData
-    sb a0, 0(t1)      // 写入寄存器a0中的值
+    sb a0, %lo(COM_THR_OFFSET)(t0)  // 写入寄存器a0中的值
     jr ra
-#else
-    la t1, COM_LSR_THRE
-.TESTW:
-    lb t0, COM_LSR
-    and t0, t0, t1
-    bne t0, zero, .WSERIAL
-    j .TESTW
-.WSERIAL:
-    lui t1, %hi(COM1)
-    sb a0, %lo(COM1)(t1)
-    jr ra
-#endif
 
 READSERIAL:                         // 读串口：将读到的数据写入v0低八位
-#ifdef MACH_FPGA
+    lui t0, %hi(COM1)
 .TESTR:
-    lb t0, SerialStat
-    andi t0, t0, 0x0002             // 截取读状态位
-    bne t0, zero, .RSERIAL          // 状态位非零可读进入读
+    lb t1, %lo(COM_LSR_OFFSET)(t0)
+    andi t1, t1, COM_LSR_DR         // 截取读状态位
+    bne t1, zero, .RSERIAL          // 状态位非零可读进入读
 /*
 #ifdef ENABLE_INT
     ori v0, zero, SYS_wait          // 取得wait调用号
     syscall SYSCALL_BASE            // 睡眠等待
 #endif
- */
+*/
     j .TESTR                        // 检测验证
 .RSERIAL:
-    lb t5, SerialData
+    lb t5, %lo(COM_RBR_OFFSET)(t0)
     jr ra
-#else // MACH_FPGA undefined
-    la t1, COM_LSR_DR
-.TESTR:
-    lb t0, COM_LSR
-    and t0, t0, t1
-    bne t0, zero, .RSERIAL
-    j .TESTR
-.RSERIAL:
-    lb t5, COM1
-    jr ra
-#endif //ifdef MACH_FPGA
 
 READSERIALWORD:
     addi sp, sp, -5*XLEN             // 保存ra,s0-3
