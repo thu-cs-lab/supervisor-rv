@@ -22,18 +22,8 @@ SECTIONS
     PROVIDE(uregs_sp = uregs + (2 - 1) * 4);
     PROVIDE(uregs_fp = uregs + (8 - 1) * 4);
     . = 0x80000000;
-    .text.init : {
-        KEEP (*(.text.init))
-    }
-    . = 0x80001000;
-    .text.ebase : {
-        KEEP (*(.text.ebase))
-    }
-    . = 0x80001180;
-    .text.ebase180 : {
-        KEEP (*(.text.ebase180))
-    }
     .text : {
+        KEEP (*(.text.init))
         *(.text)
         . = ALIGN(0x1000); /* "fixed" utest address */
         *(.text.utest)

@@ -35,6 +35,8 @@ PTESTACK:
 
     .text
     .p2align 2
+monitor_version:
+    .asciz "MONITOR for RISC-V - initialized."
 
     /* start address for the .bss section. defined in linker script */
     .word   _sbss
@@ -267,84 +269,13 @@ bss_init_done:
     j WELCOME                       // 进入主线程
 
 WELCOME:
-/*
-    lui s1, %hi(monitor_version)    // 装入启动信息
-    addi s1, s1, %lo(monitor_version)
+    la s1, monitor_version          // 装入启动信息
     lb a0, 0(s1)
 .Loop0:
     addi s1, s1, 0x1
-    jal WRITESERIAL                 // 调用串口写函数
-    nop
+    jal WRITE_SERIAL                // 调用串口写函数
     lb a0, 0(s1)
     bne a0, zero, .Loop0            // 打印循环至0结束符
-    nop
-*/
-    ori a0, zero, 0x4d              // 'M'
-    jal WRITESERIAL
-    ori a0, zero, 0x4f              // 'O'
-    jal WRITESERIAL
-    ori a0, zero, 0x4e              // 'N'
-    jal WRITESERIAL
-    ori a0, zero, 0x49              // 'I'
-    jal WRITESERIAL
-    ori a0, zero, 0x54              // 'T'
-    jal WRITESERIAL
-    ori a0, zero, 0x4f              // 'O'
-    jal WRITESERIAL
-    ori a0, zero, 0x52              // 'R'
-    jal WRITESERIAL
-    ori a0, zero, 0x20              // ' '
-    jal WRITESERIAL
-    ori a0, zero, 0x66              // 'f'
-    jal WRITESERIAL
-    ori a0, zero, 0x6f              // 'o'
-    jal WRITESERIAL
-    ori a0, zero, 0x72              // 'r'
-    jal WRITESERIAL
-    ori a0, zero, 0x20              // ' '
-    jal WRITESERIAL
-    ori a0, zero, 0x52              // 'R'
-    jal WRITESERIAL
-    ori a0, zero, 0x49              // 'I'
-    jal WRITESERIAL
-    ori a0, zero, 0x53              // 'S'
-    jal WRITESERIAL
-    ori a0, zero, 0x43              // 'C'
-    jal WRITESERIAL
-    ori a0, zero, 0x2d              // '-'
-    jal WRITESERIAL
-    ori a0, zero, 0x56              // 'v'
-    jal WRITESERIAL
-    ori a0, zero, 0x20              // ' '
-    jal WRITESERIAL
-    ori a0, zero, 0x2d              // '-'
-    jal WRITESERIAL
-    ori a0, zero, 0x20              // ' '
-    jal WRITESERIAL
-    ori a0, zero, 0x69              // 'i'
-    jal WRITESERIAL
-    ori a0, zero, 0x6e              // 'n'
-    jal WRITESERIAL
-    ori a0, zero, 0x69              // 'i'
-    jal WRITESERIAL
-    ori a0, zero, 0x74              // 't'
-    jal WRITESERIAL
-    ori a0, zero, 0x69              // 'i'
-    jal WRITESERIAL
-    ori a0, zero, 0x61              // 'a'
-    jal WRITESERIAL
-    ori a0, zero, 0x6c              // 'l'
-    jal WRITESERIAL
-    ori a0, zero, 0x69              // 'i'
-    jal WRITESERIAL
-    ori a0, zero, 0x7a              // 'z'
-    jal WRITESERIAL
-    ori a0, zero, 0x65              // 'e'
-    jal WRITESERIAL
-    ori a0, zero, 0x64              // 'd'
-    jal WRITESERIAL
-    ori a0, zero, 0x2e              // '.'
-    jal WRITESERIAL
 
     j SHELL                         // 开始交互
 

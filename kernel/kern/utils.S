@@ -3,11 +3,11 @@
 
     .p2align 2
     .text
-    .global WRITESERIAL
-    .global READSERIAL
-    .global READSERIALWORD
+    .global WRITE_SERIAL
+    .global READ_SERIAL
+    .global READ_SERIAL_WORD
 
-WRITESERIAL:                        // 写串口：将a0的低八位写入串口
+WRITE_SERIAL:                       // 写串口：将a0的低八位写入串口
     lui t0, %hi(COM1)
 .TESTW:
     lb t1, %lo(COM_LSR_OFFSET)(t0)  // 查看串口状态
@@ -18,7 +18,7 @@ WRITESERIAL:                        // 写串口：将a0的低八位写入串口
     sb a0, %lo(COM_THR_OFFSET)(t0)  // 写入寄存器a0中的值
     jr ra
 
-READSERIAL:                         // 读串口：将读到的数据写入v0低八位
+READ_SERIAL:                        // 读串口：将读到的数据写入v0低八位
     lui t0, %hi(COM1)
 .TESTR:
     lb t1, %lo(COM_LSR_OFFSET)(t0)
@@ -35,7 +35,7 @@ READSERIAL:                         // 读串口：将读到的数据写入v0低
     lb t5, %lo(COM_RBR_OFFSET)(t0)
     jr ra
 
-READSERIALWORD:
+READ_SERIAL_WORD:
     addi sp, sp, -5*XLEN             // 保存ra,s0-3
     STORE ra, 0x0(sp)
     STORE s0, XLEN(sp)
@@ -43,13 +43,13 @@ READSERIALWORD:
     STORE s2, 3*XLEN(sp)
     STORE s3, 4*XLEN(sp)
 
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s0, zero, t5                 // 结果存入s0
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s1, zero, t5                 // 结果存入s1
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s2, zero, t5                 // 结果存入s2
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s3, zero, t5                 // 结果存入s3
 
     andi s0, s0, 0x00FF             // 截取低八位
@@ -67,13 +67,13 @@ READSERIALWORD:
     mv t4, t5                       // t4 保存最终结果
 
 #ifdef RV64
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s0, zero, t5                 // 结果存入s0
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s1, zero, t5                 // 结果存入s1
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s2, zero, t5                 // 结果存入s2
-    jal READSERIAL                  // 读串口获得八个比特
+    jal READ_SERIAL                 // 读串口获得八个比特
     or s3, zero, t5                 // 结果存入s3
 
     andi s0, s0, 0x00FF             // 截取低八位
