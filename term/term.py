@@ -130,27 +130,41 @@ def single_line_disassmble(binary_instr, addr):
     return result.decode('utf-8')
 
 
-def run_T(num):
-    if num < 0: #Print all entries
-        start = 0
-        entries = 16
-    else:
-        start = num
-        entries = 1
-    print("Index | ASID |  VAddr  |  PAddr  | C | D | V | G")
-    for i in range(start, start+entries):
-        outp.write(b'T')
-        outp.write(int_to_byte_string(i))
-        entry_hi = byte_string_to_int(inp.read(4))
-        entry_lo0 = byte_string_to_int(inp.read(4))
-        entry_lo1 = byte_string_to_int(inp.read(4))
-        if (entry_hi & entry_lo1 & entry_lo0) == 0xffffffff:
-            print("Error: TLB support not enabled")
-            break
-        print("  %x      %02x   %05x_000 %05x_000  %x   %x   %x   %x" %
-            (i, entry_hi&0xff, entry_hi>>12, entry_lo0>>6, entry_lo0>>3&7, entry_lo0>>2&1, entry_lo0>>1&1, entry_lo0&1))
-        print("              %05x_000 %05x_000  %x   %x   %x   %x" %
-            (                entry_hi>>12|1, entry_lo1>>6, entry_lo1>>3&7, entry_lo1>>2&1, entry_lo1>>1&1, entry_lo1&1))
+def run_T():
+    outp.write(b'T')
+    addr = byte_string_to_int(inp.read(xlen))
+    if addr == -1:
+        print("Paging not enabled")
+        return
+    print("Page table at %08x" % addr)
+    print("Virtual Address | Physical Address | D | A | G | U | X | W | R | V")
+    for vpn1 in range(0, 1024):
+        outp.write(b'D')
+        outp.write(int_to_byte_string(addr))
+        outp.write(int_to_byte_string(4))
+        entry = byte_string_to_int(inp.read(4))
+        if (entry & 1) != 0:
+            # Valid
+            if (entry & 0xe) == 0:
+                # non-leaf
+                addr2 = (entry >> 10) << 12
+                for vpn2 in range(0, 1024):
+                    outp.write(b'D')
+                    outp.write(int_to_byte_string(addr2))
+                    outp.write(int_to_byte_string(4))
+                    entry2 = byte_string_to_int(inp.read(4))
+                    if (entry2 & 1) != 0:
+                        # Valid
+                        print("    %08x          %08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                            ((vpn1 << 22) | (vpn2 << 12), (entry2 >> 10) << 12, (entry2 >> 7) & 1, (entry2 >> 6) & 1, (entry2 >> 5) & 1,
+                                (entry2 >> 4) & 1, (entry2 >> 3) & 1, (entry2 >> 2) & 1, (entry2 >> 1) & 1, entry2 & 1))
+                    addr2 = addr2 + 4
+            else:
+                print("    %08x          %08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                    (vpn1 << 22, (entry >> 10) << 12, (entry >> 7) & 1, (entry >> 6) & 1, (entry >> 5) & 1,
+                        (entry >> 4) & 1, (entry >> 3) & 1, (entry >> 2) & 1, (entry >> 1) & 1, entry & 1))
+
+        addr = addr + 4
 
 def run_A(addr):
     print("one instruction per line, empty line to end.")
@@ -279,8 +293,7 @@ def MainLoop():
                 addr = raw_input('addr: 0x')
                 run_G(int(addr, 16))
             elif cmd == 'T':
-                num = raw_input('num: ')
-                run_T(int(num))
+                run_T()
             else:
                 print("Invalid command")
                 print("Usage:\tR: print registers")

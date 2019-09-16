@@ -27,10 +27,16 @@ endif
 override EN_INT ?= n
 ifeq ($(EN_INT), y)
 	ASFLAGS += -DENABLE_INT
-	EN_TLB = n
+	EN_PAGING = n
 endif
 
-CONFIG_FILE := .config_$(BITS)_$(EN_INT)
+override EN_PAGING ?= n
+ifeq ($(EN_PAGING), y)
+	ASFLAGS += -DENABLE_PAGING
+	EN_PAGING = n
+endif
+
+CONFIG_FILE := .config_$(BITS)_$(EN_PAGING)
 
 .PHONY: all clean show-utest sim debug inst
 
@@ -64,7 +70,7 @@ sim: checkdirs $(TARGET)
 	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor none -serial tcp::6666,server -s
 
 debug: checkdirs $(TARGET)
-	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor none -serial tcp::6666,server -S -s
+	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor stdio -serial tcp::6666,server -S -s
 
 inst: checkdirs $(TARGET)
 	@$(GCCPREFIX)objdump -d $(TARGET) -M no-aliases | awk '{print $$3}' | sort | uniq

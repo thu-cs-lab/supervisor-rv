@@ -16,4 +16,14 @@
 
 #define SYS_exit 1
 #define SYS_putc 30
+
+#define MSTATUS_MPP_MASK 0x1800
+
+#define SATP_SV32 0x80000000
+
+#ifdef ENABLE_PAGING
+#define USER_STACK_INIT 0x80000000
+#else
+#define USER_STACK_INIT 0x807F0000
+#endif
 #endif

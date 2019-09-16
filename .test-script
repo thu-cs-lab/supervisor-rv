@@ -88,6 +88,10 @@ if {$test_int == "y"} {
     expect "]"
     send "ecall\n"
     expect "]"
+    send "li a0, 0x4B\n"
+    expect "]"
+    send "ecall\n"
+    expect "]"
     send "jr ra\n"
     expect "]"
     send "\n"
@@ -95,7 +99,7 @@ if {$test_int == "y"} {
     expect ">>"
     send "G\n"
     send "80100000\n"
-    expect "O" {} timeout {exit 1}
+    expect "OK" {} timeout {exit 1}
     expect "elapsed time" {} timeout {exit 1}
 }
 

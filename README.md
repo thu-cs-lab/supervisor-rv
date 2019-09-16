@@ -100,6 +100,7 @@ Kernel 的入口地址为 0x80000000，对应汇编代码`kern/init.S`中的 `ST
 为支持中断，CPU 要额外实现以下指令
 
 ```asm
+CSRRC  ccccccccccccsssss011ddddd1110011
 CSRRS  ccccccccccccsssss010ddddd1110011
 CSRRW  ccccccccccccsssss001ddddd1110011
 EBREAK 00000000000100000000000001110011
@@ -113,66 +114,53 @@ MRET   00110000001000000000000001110011
 2. mscratch
 3. mepc
 4. mcause: Interrupt, Exception Code
+5. mstatus: MPP
 
 csr 寄存器字段功能定义参见 RISC-V32 特权态规范（在参考文献中）。
 
 监控程序对于异常、中断的使用方式如下：
 
 - 入口函数 EXCEPTION_HANDLER ，根据异常号跳转至相应的异常处理程序。
-- 用户程序通过 ebreak 回到 M-mode ，在异常处理中跳回到 SHELL 。
+- 初始化时设置 mtvec=EXCEPTION_HANDLER ，使用正常中断模式（MODE=DIRECT）。
+- 用户程序在 U-mode 中运行（mstatus.MPP=0），通过 ebreak 回到 M-mode ，在异常处理中跳回到 SHELL 。
 - 异常帧保存 31 个通用寄存器及 mepc 寄存器。
 - 禁止发生嵌套异常。
-- 支持 SYS\_putc 系统调用。写串口忙等待，与禁止嵌套异常不冲突。
+- 支持 SYS\_putc 系统调用，调用方法参考 UTEST_PUTC 函数。写串口忙等待，与禁止嵌套异常不冲突。
 - 当发生不能处理的中断时，表示出现严重错误，终止当前任务，自行重启。并且发送错误信号 0x80 提醒 TERM 。
-- 初始化时设置 mtvec=EXCEPTION_HANDLER ，使用正常中断模式（MODE=DIRECT）。
 
-### 进阶二：TLB支持
+### 进阶二：页表支持
 
-在支持异常处理的基础上，可以进一步使能TLB支持，从而实现用户态地址映射。要启用这一功能，编译时的命令变为：
+在支持异常处理的基础上，可以进一步使能页表支持，从而实现用户态地址映射。要启用这一功能，编译时的命令变为：
 
-`make EN_INT=y EN_TLB=y`
+`make EN_INT=y EN_PAGING=y`
 
-CPU 要额外实现以下指令
+CPU 需要额外实现以下指令
 
-1. `TLBP` 01000010000000000000000000001000
-1. `TLBR` 01000010000000000000000000000001
-1. `TLBWI` 01000010000000000000000000000010
-1. `TLBWR` 01000010000000000000000000000110
+```asm
+SFENCE.VMA  0001001SSSSSsssss000000001110011
+```
 
+如果没有实现 TLB ，可以把 SFENCE.VMA 实现为 NOP。
 
-此外还需要实现 CP0 寄存器：
+此外还需要实现 csr 寄存器：
 
-1. Context
-2. Config1: MMUSize
-3. Index
-4. Entryhi: VPN2
-5. Entrylo0/1: PFN, D, V
-6. Wired
-7. Random
+1. satp
 
-以及TLB相关的几个异常，其中 Refill 异常入口地址为 0x80001000，与其它异常的入口地址不同。
+以及页表相关的几个异常，RV32 需要实现 Sv32 的页表格式，RV64 需要实现 Sv39 的页表格式。
 
-为了简化，TLB实际的映射是线性映射。将0x80100000-0x803FFFFF放在kuseg地址最低端，将0x80400000-0x807EFFFF放在kuseg的地址最高端。4MB的地址映射在kseg2的页表里只需8KB的页表。因此设CP0的WIRED=2，TLB最低两项存kseg2地址翻译。
+为了简化，实际的映射是线性映射，映射的方式在下面给出：
 
-在一般中断处理中，需要处理TLB不合法异常。修改异常通过统一置D位为一避免。当访问无法映射的地址时，向串口发送地址访问违法信号，并重启。因为正常访问kseg2不会引发TLB异常，所以异常类型TLBL,TLBS,Mod(修改TLB只读页)都是严重错误，需要发送错误信号 0x80 并重启。
+- va[0x00000000, 0x002FFFFF] = pa[0x80100000, 0x803FFFFF] DAGUX-RV
+- va[0x7FC10000, 0x7FFFFFFF] = pa[0x80400000, 0x807EFFFF] DAGU-WRV
 
-kuseg的映射：
-
-- va[0x00000000, 0x002FFFFF] = pa[0x00100000, 0x003FFFFF]
-- va[0x7FC10000, 0x7FFFFFFF] = pa[0x00400000, 0x007EFFFF]
+其它地址都未经映射，访问则会引发异常。
  
-页表：
- 
-- PTECODE: va(i*page_size)->[i]->RAM0UBASE[i]
-- PTESTACK: va(KSEG0BASE+i*page_size-RAM1USIZE)->[i]->RAM1[i]
-
 初始化过程：
 
-1. 从Config1获得TLB大小，初始化TLB
-1. 设Context的PTEBase并填写页表
-1. PageMask设零（固定为4K页大小）
-1. 将用户栈指针设为 0x80000000
-1. Wired设为2，设置对kseg2的映射。
+1. 根据 RV32 还是 RV64 选择 Sv32 或者 Sv39 的页表进行填写
+2. 将页表的物理地址写入 satp 并配置好模式。
+3. 将用户栈指针设为 0x80000000
+4. 启用 U-mode 下的页表映射机制
 
 ## Term
 

@@ -11,27 +11,29 @@ TCBT:
     .global current                 // current thread TCB address
 current:
     .dword 0
-/*
-#ifdef ENABLE_TLB                   // 声明页表
-    .section .bss.ptes
-    .global PTECODE
+#ifdef ENABLE_PAGING                // 声明页表
+    .section .data
+    .global PAGE_TABLE
     .global PTESTACK
     .p2align 12                     // 每个两页，页对齐
-PTECODE:
-    .rept PAGE_SIZE / 2             // 8KB一个TLB项
+PAGE_TABLE:
+    .rept 1024
     .long 0
     .endr
-PTE2BASE:
-    .rept PAGE_SIZE / 2 - PTESTACK_SIZE / 4
-                                    // 空余
+PAGE_TABLE_USER_CODE:
+    .rept 1024
     .long 0
     .endr
-PTESTACK:
-    .rept PTESTACK_SIZE / 4
+PAGE_TABLE_KERNEL_CODE:
+    .long 0x200000fb                // 0x80000000 -> 0x80000000 DAGUX-RV
+    .rept 1023
+    .long 0
+    .endr
+PAGE_TABLE_USER_STACK:
+    .rept 1024
     .long 0
     .endr
 #endif
-*/
 
     .section .rodata
 monitor_version:
@@ -129,112 +131,61 @@ bss_init_done:
     la t1, current   
     sw t2, 0(t1)
 
-/*
-#ifdef ENABLE_TLB                   // 打开TLB机制
-    lui t0, 0xC000                  // PTE在kseg2
-    mtc0 zero, CP0_PAGEMASK         // pagemask置零，使用4kB页
-    mtc0 t0, CP0_CONTEXT            // 设置PTEBase
-    lui t0, 0x8000                  // 使用kuseg，用户栈地址确定
-    lui t1, %hi(uregs_sp)           // 写入用户空间备份
-    sw t0, %lo(uregs_sp)(t1)
-    lui t1, %hi(uregs_fp)
-    sw t0, %lo(uregs_fp)(t1)
-    mfc0 t3, CP0_CONFIG, 1          // CP0_Config1
-    srl t3, t3, 25
-    andi t3, t3, 0x3F               // 截取MMUSize
-    addiu t3, t3, 1                 // TLB有MMUSize+1项
-    lui t4, 0x8000                  // 用于检测TLB命中
-    or t2, t4, t4                   // va = begin(kseg0)
-    mtc0 zero, CP0_ENTRYLO0
-    mtc0 zero, CP0_ENTRYLO1         // 设为非可用
-.LC_tlb:
-    addiu t3, t3, -1
-.LC_vamat:
-    addiu t2, t2, PAGE_SIZE * 2     // va += 8KB
-    mtc0 t2, CP0_ENTRYHI            // 写va
-    nop
-    tlbp
-    nop
-    mfc0 t1, CP0_INDEX              // 获得匹配结果
-    and t1, t1, t4                  // 截取最高位
-    beq t1, zero, .LC_vamat         // 匹配到则不能设这个va
-    nop
-    mtc0 t3, CP0_INDEX
-    nop
-    tlbwi                           // 清零
-    bne t3, zero, .LC_tlb
-    nop
+#ifdef ENABLE_PAGING
+    la t0, PAGE_TABLE
 
-    lui a0, %hi(PTECODE)            // 填页表1
-    addiu a0, %lo(PTECODE)
-    lui t0, %hi(PRAM0UBASE)
-    addiu t0, %lo(PRAM0UBASE)       // 物理地址
-    srl t0, t0, 6                   // pa(12)->pfn(6)
-    ori t0, t0, (ELO_VALIDF | ELO_DIRTYF | ELO_GLOBALF)
-                                    // 可访问可写
-    ori t6, zero, PTECODE_SIZE / 8  // 计数器
-.LC_pte1:
-    sw t0, 0x0(a0)                  // 写Lo
-    addiu t6, t6, -1                // 滚动计数器
-    addiu a0, a0, 8                 // 下一个Lo
-    addiu t0, t0, PAGE_SIZE >> 6    // 下一页
-    bne t6, zero, .LC_pte1
-    nop
+    // 填写用户代码部分的页表
+    la t1, PAGE_TABLE_USER_CODE
+    li t3, 768
+    li t2, 0
+.LOOP_USER_CODE:
+    li t4, 0x200400fb  // 0x80100000 DAGUX-RV
+    slli t5, t2, 10
+    add t4, t4, t5
+    sw t4, 0(t1)
+    addi t1, t1, 4
+    addi t2, t2, 1
+    bne t2, t3, .LOOP_USER_CODE
 
-    lui a0, %hi(PTESTACK)           // 填页表2
-    addiu a0, %lo(PTESTACK)
-    lui t0, %hi(PRAM1BASE)
-    addiu t0, %lo(PRAM1BASE)        // 物理地址
-    srl t0, t0, 6                   // pa(12)->pfn(6)
-    ori t0, t0, (ELO_VALIDF | ELO_DIRTYF | ELO_GLOBALF)
-                                    // 可访问可写
-    ori t6, zero, PTESTACK_SIZE / 8 // 计数器
-.LC_pte2:
-    sw t0, 0x0(a0)                  // 写Lo
-    addiu t6, t6, -1                // 滚动计数器
-    addiu a0, a0, 8                 // 下一个Lo
-    addiu t0, t0, PAGE_SIZE >> 6    // 下一页
-    bne t6, zero, .LC_pte2
-    nop
+    la t1, PAGE_TABLE_USER_CODE
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    sw t1, 0(t0)
 
-    ori t0, zero, 2
-    mtc0 t0, CP0_WIRED              // wired置二
+    la t1, PAGE_TABLE_KERNEL_CODE
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    li t2, 2048
+    add t2, t0, t2
+    sw t1, 0(t2)
 
-    lui s2, 0x1FFF
-    ori s2, s2, 0xFFFF              // kseg0 掩码
-    mtc0 zero, CP0_INDEX            // 取TLB第一项
-    lui a0, %hi(PTECODE)            // kseg2页表page0
-    addiu a0, %lo(PTECODE)
-    and a0, a0, s2                  // 取物理地址
-    srl a0, a0, 6                   // PA[35..12] => ENTRYLO{0,1}[29..6]
-    ori a0, a0, ELO_VALIDF | ELO_GLOBALF    // 置合法位，不允许修改kseg2
-    addiu a1, a0, PAGE_SIZE >> 6    // page1
-    mtc0 a0, CP0_ENTRYLO0
-    mtc0 a1, CP0_ENTRYLO1
-    lui t0, %hi(KSEG2PAGE0)         // kseg2第一二页
-    addiu t0, %lo(KSEG2PAGE0)
-    mtc0 t0, CP0_ENTRYHI            // kseg2第一页翻译为ptecode
-    nop
-    tlbwi
-    ori t0, zero, 0x1               // 2
-    mtc0 t0, CP0_INDEX              // 取TLB第二项
-    lui a0, %hi(PTE2BASE)           // kseg2页表page1022
-    addiu a0, %lo(PTE2BASE)
-    and a0, a0, s2                  // 取物理地址
-    srl a0, a0, 6                   // PA[35..12] => ENTRYLO{0,1}[29..6]
-    ori a0, a0, ELO_VALIDF | ELO_GLOBALF    // 置合法位，不允许修改kseg2
-    addiu a1, a0, PAGE_SIZE >> 6    // page1023
-    mtc0 a0, CP0_ENTRYLO0
-    mtc0 a1, CP0_ENTRYLO1
-    lui t0, 0xC03F                  // kseg2第1022,1023页
-    ori t0, t0, 0xE000
-    mtc0 t0, CP0_ENTRYHI
-    nop
-    tlbwi
-    nop
+    // 填写用户数据部分的页表
+    la t1, PAGE_TABLE_USER_STACK
+    addi t1, t1, 4*16
+    li t3, 1024
+    li t2, 16
+.PAGE_TABLE_USER_STACK:
+    li t4, 0x200fc0f7  // 0x803F0000 DAGU-WRV
+    slli t5, t2, 10
+    add t4, t4, t5
+    sw t4, 0(t1)
+    addi t1, t1, 4
+    addi t2, t2, 1
+    bne t2, t3, .PAGE_TABLE_USER_STACK
+
+    la t1, PAGE_TABLE_USER_STACK
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    li t2, 2044
+    add t2, t0, t2
+    sw t1, 0(t2)
+
+    srli t0, t0, 12
+    li t1, SATP_SV32
+    or t0, t0, t1
+    csrw satp, t0
+    sfence.vma
 #endif
-*/
-
 /*
 #ifdef ENABLE_INT
     mfc0 t0, CP0_STATUS             // 取得cp0的status Reg

@@ -50,8 +50,6 @@ EXCEPTION_HANDLER:
     bne t1, zero, .HANDLE_INT
     li t1, EX_ECALL_U
     beq t1, t0, .HANDLE_ECALL
-    li t1, EX_ECALL_S
-    beq t1, t0, .HANDLE_ECALL
     li t1, EX_BREAK
     beq t1, t0, .HANDLE_BREAK
 

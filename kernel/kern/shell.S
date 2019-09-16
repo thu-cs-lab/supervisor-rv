@@ -36,48 +36,30 @@ SHELL:
     jal WRITE_SERIAL                 // 把 XLEN 写给 term
     j .DONE                         
 
-.OP_T:                              // 操作 - 打印TLB项
-    jal READ_SERIAL_WORD              // 取num(index)
-    addi sp, sp, -6*XLEN
-    sw s1, 0(sp)
-    sw s2, XLEN(sp)
+.OP_T:                              // 操作 - 打印页表
+    addi sp, sp, -3*XLEN
+    STORE s1, 0(sp)
+    STORE s2, XLEN(sp)
 
-/*
-#ifdef ENABLE_TLB
-    mtc0 v0, CP0_INDEX              // 写入index
-    mfc0 s1, CP0_ENTRYHI            // 保存ASID
-    nop
-    tlbr
-    nop
-    mfc0 s0, CP0_ENTRYHI            // 取ENTRYHI打印
-    sw s0, 0xC(sp)
-    mfc0 s0, CP0_ENTRYLO0           // 取ENTRYLO0
-    sw s0, 0x10(sp)
-    mfc0 s0, CP0_ENTRYLO1           // 取ENTRYLO1
-    sw s0, 0x14(sp)
-    mtc0 s1, CP0_ENTRYHI            // 写回ASID
-    nop
+#ifdef ENABLE_PAGING
+    csrr s1, satp
+    slli s1, s1, 12
 #else
-*/
-    addi s1, zero, -1               // 不支持TLB则返回全1
-    sw s1, 3*XLEN(sp)
-    sw s1, 4*XLEN(sp)
-    sw s1, 5*XLEN(sp)
-/*
+    li s1, -1
 #endif
-*/
-    ori s2, zero, 0xC               // 打印12字节
-    addi s1, sp, 0xC                // ENTRYHI位置
-.LC3:
-    lb a0, 0x0(s1)                  // 读一字节
+    STORE s1, 2*XLEN(sp)
+    addi s1, sp, 2*XLEN
+    li s2, XLEN
+.LC0:
+    lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
-    jal WRITE_SERIAL                 // 打印
-    addi s1, s1, 1                  // 移动打印指针
-    bne s2, zero, .LC3              // 打印循环
+    jal WRITE_SERIAL                 // 写入串口
+    addi s1, s1, 0x1                // 移动打印指针
+    bne s2, zero, .LC0              // 打印循环
 
-    lw s1, 0x0(sp)
-    lw s2, 0x4(sp)
-    addi sp, sp, 0x18
+    LOAD s1, 0x0(sp)
+    LOAD s2, XLEN(sp)
+    addi sp, sp, 3*XLEN
 
     j .DONE
 
@@ -88,12 +70,12 @@ SHELL:
 
     la s1, uregs
     ori s2, zero, 31*XLEN               // 计数器，打印 31 个寄存器
-.LC0:
+.LC1:
     lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
     jal WRITE_SERIAL                 // 写入串口
     addi s1, s1, 0x1                // 移动打印指针
-    bne s2, zero, .LC0              // 打印循环
+    bne s2, zero, .LC1              // 打印循环
 
     LOAD s1, 0(sp)                    // 恢复s1,s2
     LOAD s2, XLEN(sp)
@@ -110,12 +92,12 @@ SHELL:
     jal READ_SERIAL_XLEN
     or s2, a0, zero                 // 获得num
 
-.LC1:
+.LC2:
     lb a0, 0(s1)                    // 读取字节
     addi s2, s2, -1                 // 滚动计数器
     jal WRITE_SERIAL                 // 写入串口
     addi s1, s1, 0x1                // 移动打印指针
-    bne s2, zero, .LC1              // 打印循环
+    bne s2, zero, .LC2              // 打印循环
 
     LOAD s1, 0(sp)                    // 恢复s1,s2
     LOAD s2, XLEN(sp)
@@ -132,12 +114,12 @@ SHELL:
     jal READ_SERIAL_XLEN
     or s2, a0, zero                 // 获得num
     srl s2, s2, 2                   // num除4，获得字数
-.LC2:                               // 每次写入一字
+.LC3:                               // 每次写入一字
     jal READ_SERIAL_WORD              // 从串口读入一字
     sw a0, 0(s1)                    // 写内存一字
     addi s2, s2, -1                 // 滚动计数器
     addi s1, s1, 4                  // 移动写指针
-    bne s2, zero, .LC2              // 写循环
+    bne s2, zero, .LC3              // 写循环
 
     LOAD s1, 0(sp)                    // 恢复s1,s2
     LOAD s2, XLEN(sp)
@@ -153,6 +135,8 @@ SHELL:
 
 #ifdef ENABLE_INT
     csrw mepc, s10                // 用户程序入口写入EPC
+    li a0, MSTATUS_MPP_MASK
+    csrc mstatus, a0     // 设置 MPP=0 ，对应 U-mode
 #endif
 
     la ra, uregs              // 定位用户空间寄存器备份地址
@@ -190,11 +174,12 @@ SHELL:
     LOAD t5, TF_t5(ra)
     LOAD t6, TF_t6(ra)
 
+.ENTER_UESR:
 #ifdef ENABLE_INT
     la ra, .USERRET_USER                // ra写入返回地址
-    mret                            // 进入用户程序
+    mret                                // 进入用户程序
 #else
-    la ra, .USERRET2                // ra写入返回地址
+    la ra, .USERRET2                    // ra写入返回地址
     jr s10
 #endif
 

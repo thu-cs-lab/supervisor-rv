@@ -4,7 +4,6 @@ OUTPUT_ARCH("riscv:rv64")
 OUTPUT_FORMAT("elf64-littleriscv")
 
 PROVIDE(KERNEL_STACK_INIT = 0x80800000);
-PROVIDE(USER_STACK_INIT = 0x807F0000);
 SECTIONS
 {
     . = 0x807F0000;
@@ -12,7 +11,6 @@ SECTIONS
         _sbss = .;         /* define a global symbol at bss start */
         *(.bss.uregs)
         *(.bss)
-        *(.bss.ptes)
         . = ALIGN(4);
         _ebss = .;         /* define a global symbol at bss end */
     }
