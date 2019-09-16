@@ -1,6 +1,6 @@
 #!/usr/bin/expect
 
-set timeout 60
+set timeout 120
 set test_int [lindex $argv 0]
 set test_paging [lindex $argv 1]
 

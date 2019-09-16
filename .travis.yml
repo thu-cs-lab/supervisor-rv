@@ -37,7 +37,7 @@ script:
 - killall qemu-system-riscv32
 - travis_wait 1 make BITS=32 EN_INT=y EN_PAGING=y sim -C kernel
   || true
-- ./.test-script y y
+- ./.test-script y y || true
 - killall qemu-system-riscv32
 - travis_wait 1 make BITS=64 sim -C kernel
   || true
@@ -49,7 +49,7 @@ script:
 - killall qemu-system-riscv64
 - travis_wait 1 make BITS=64 EN_INT=y EN_PAGING=y sim -C kernel
   || true
-- ./.test-script y y
+- ./.test-script y y || true
 - killall qemu-system-riscv64
 addons:
   apt:
