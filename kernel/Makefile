@@ -24,7 +24,13 @@ else
 	LDSCRIPT	:= kern/kernel64.ld
 endif
 
-CONFIG_FILE := .config_$(BITS)
+override EN_INT ?= n
+ifeq ($(EN_INT), y)
+	ASFLAGS += -DENABLE_INT
+	EN_TLB = n
+endif
+
+CONFIG_FILE := .config_$(BITS)_$(EN_INT)
 
 .PHONY: all clean show-utest sim debug
 

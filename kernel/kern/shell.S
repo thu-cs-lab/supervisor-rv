@@ -1,4 +1,4 @@
-#include <common.h>
+#include <exception.h>
 
     .section .bss.uregs
     .p2align 2
@@ -87,7 +87,7 @@ SHELL:
     STORE s2, XLEN(sp)
 
     la s1, uregs
-    ori s2, zero, 32*XLEN               // 计数器，打印124字节
+    ori s2, zero, 31*XLEN               // 计数器，打印 31 个寄存器
 .LC0:
     lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
@@ -151,100 +151,120 @@ SHELL:
     ori a0, zero, TIMERSET          // 写TIMERSET(0x06)信号
     jal WRITE_SERIAL                 // 告诉终端用户程序开始运行
 
-/*
 #ifdef ENABLE_INT
-    mtc0 s10, CP0_EPC                // 用户程序入口写入EPC
+    csrw mepc, s10                // 用户程序入口写入EPC
 #endif
-*/
 
     la ra, uregs              // 定位用户空间寄存器备份地址
-    STORE s10, PUTREG(32)(ra)          // 保存用户程序入口
-    STORE sp, PUTREG(33)(ra)           // 保存栈指针
+    STORE sp, TF_ksp(ra)           // 保存栈指针
 
-    // ra
-    // LOAD x1,  PUTREG(1)(ra)
-    LOAD x2,  PUTREG(2)(ra)          // 装入x2-x31
-    LOAD x3,  PUTREG(3)(ra)
-    LOAD x4,  PUTREG(4)(ra)
-    LOAD x5,  PUTREG(5)(ra)
-    LOAD x6,  PUTREG(6)(ra)
-    LOAD x7,  PUTREG(7)(ra)
-    LOAD x8,  PUTREG(8)(ra)
-    LOAD x9,  PUTREG(9)(ra)
-    LOAD x10, PUTREG(10)(ra)
-    LOAD x11, PUTREG(11)(ra)
-    LOAD x12, PUTREG(12)(ra)
-    LOAD x13, PUTREG(13)(ra)
-    LOAD x14, PUTREG(14)(ra)
-    LOAD x15, PUTREG(15)(ra)
-    LOAD x16, PUTREG(16)(ra)
-    LOAD x17, PUTREG(17)(ra)
-    LOAD x18, PUTREG(18)(ra)
-    LOAD x19, PUTREG(19)(ra)
-    LOAD x20, PUTREG(20)(ra)
-    LOAD x21, PUTREG(21)(ra)
-    LOAD x22, PUTREG(22)(ra)
-    LOAD x23, PUTREG(23)(ra)
-    LOAD x24, PUTREG(24)(ra)
-    LOAD x25, PUTREG(25)(ra)
-    // s10
-    // LOAD x26, PUTREG(26)(ra) 
-    LOAD x27, PUTREG(27)(ra)
-    LOAD x28, PUTREG(28)(ra)
-    LOAD x29, PUTREG(29)(ra)
-    LOAD x30, PUTREG(30)(ra)
-    LOAD x31, PUTREG(31)(ra)
+    // LOAD x1,  TF_ra(ra)
+    LOAD sp, TF_sp(ra)
+    LOAD gp, TF_gp(ra)
+    LOAD tp, TF_tp(ra)
+    LOAD t0, TF_t0(ra)
+    LOAD t1, TF_t1(ra)
+    LOAD t2, TF_t2(ra)
+    LOAD s0, TF_s0(ra)
+    LOAD s1, TF_s1(ra)
+    LOAD a0, TF_a0(ra)
+    LOAD a1, TF_a1(ra)
+    LOAD a2, TF_a2(ra)
+    LOAD a3, TF_a3(ra)
+    LOAD a4, TF_a4(ra)
+    LOAD a5, TF_a5(ra)
+    LOAD a6, TF_a6(ra)
+    LOAD a7, TF_a7(ra)
+    LOAD s2, TF_s2(ra)
+    LOAD s3, TF_s3(ra)
+    LOAD s4, TF_s4(ra)
+    LOAD s5, TF_s5(ra)
+    LOAD s6, TF_s6(ra)
+    LOAD s7, TF_s7(ra)
+    LOAD s8, TF_s8(ra)
+    LOAD s9, TF_s9(ra)
+    // LOAD s10, TF_s10(ra)
+    LOAD s11, TF_s11(ra)
+    LOAD t3, TF_t3(ra)
+    LOAD t4, TF_t4(ra)
+    LOAD t5, TF_t5(ra)
+    LOAD t6, TF_t6(ra)
 
-    la ra, .USERRET2          // ra写入返回地址
-
-/*
 #ifdef ENABLE_INT
-    eret                            // 进入用户程序
+    la ra, .USERRET_USER                // ra写入返回地址
+    mret                            // 进入用户程序
 #else
-*/
+    la ra, .USERRET2                // ra写入返回地址
     jr s10
-/*
 #endif
-*/
+
+#ifdef ENABLE_INT
+.USERRET_USER:
+    ebreak
+
+    .global USERRET_MACHINE
+USERRET_MACHINE:
+    la s1, uregs
+    li s2, TF_SIZE                  // 计数器
+.LC4:
+    lw a0, 0(sp)
+    sw a0, 0(s1)
+    addi s2, s2, -4                 // 滚动计数器
+    addi s1, s1, 0x4
+    addi sp, sp, 0x4
+    bne s2, zero, .LC4
+
+    la s1, uregs
+    LOAD sp, TF_ksp(s1)             // 重新获得当前监控程序栈顶指针
+
+    ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
+    jal WRITE_SERIAL                // 告诉终端用户程序结束运行
+
+    j .DONE
+#endif
 
 .USERRET2:
     la ra, uregs              // 定位用户空间寄存器备份地址
 
-    STORE x1,  PUTREG(1)(ra)           // 备份x1-x31
-    STORE x2,  PUTREG(2)(ra)
-    STORE x3,  PUTREG(3)(ra)
-    STORE x4,  PUTREG(4)(ra)
-    STORE x5,  PUTREG(5)(ra)
-    STORE x6,  PUTREG(6)(ra)
-    STORE x7,  PUTREG(7)(ra)
-    STORE x8,  PUTREG(8)(ra)
-    STORE x9,  PUTREG(9)(ra)
-    STORE x10, PUTREG(10)(ra)
-    STORE x11, PUTREG(11)(ra)
-    STORE x12, PUTREG(12)(ra)
-    STORE x13, PUTREG(13)(ra)
-    STORE x14, PUTREG(14)(ra)
-    STORE x15, PUTREG(15)(ra)
-    STORE x16, PUTREG(16)(ra)
-    STORE x17, PUTREG(17)(ra)
-    STORE x18, PUTREG(18)(ra)
-    STORE x19, PUTREG(19)(ra)
-    STORE x20, PUTREG(20)(ra)
-    STORE x21, PUTREG(21)(ra)
-    STORE x22, PUTREG(22)(ra)
-    STORE x23, PUTREG(23)(ra)
-    STORE x24, PUTREG(24)(ra)
-    STORE x25, PUTREG(25)(ra)
-    STORE x26, PUTREG(26)(ra)
-    STORE x27, PUTREG(27)(ra)
-    STORE x28, PUTREG(28)(ra)
-    STORE x29, PUTREG(29)(ra)
-    STORE x30, PUTREG(30)(ra)
-    STORE x31, PUTREG(31)(ra)
+    //STORE ra, TF_ra(ra)
+    STORE sp, TF_sp(ra)
+    STORE gp, TF_gp(ra)
+    STORE tp, TF_tp(ra)
+    STORE t0, TF_t0(ra)
+    STORE t1, TF_t1(ra)
+    STORE t2, TF_t2(ra)
+    STORE s0, TF_s0(ra)
+    STORE s1, TF_s1(ra)
+    STORE a0, TF_a0(ra)
+    STORE a1, TF_a1(ra)
+    STORE a2, TF_a2(ra)
+    STORE a3, TF_a3(ra)
+    STORE a4, TF_a4(ra)
+    STORE a5, TF_a5(ra)
+    STORE a6, TF_a6(ra)
+    STORE a7, TF_a7(ra)
+    STORE s2, TF_s2(ra)
+    STORE s3, TF_s3(ra)
+    STORE s4, TF_s4(ra)
+    STORE s5, TF_s5(ra)
+    STORE s6, TF_s6(ra)
+    STORE s7, TF_s7(ra)
+    STORE s8, TF_s8(ra)
+    STORE s9, TF_s9(ra)
+    STORE s10, TF_s10(ra)
+    STORE s11, TF_s11(ra)
+    STORE t3, TF_t3(ra)
+    STORE t4, TF_t4(ra)
+    STORE t5, TF_t5(ra)
+    STORE t6, TF_t6(ra)
 
-    LOAD sp, PUTREG(33)(ra)           // 重新获得当前监控程序栈顶指针
+    LOAD sp, TF_ksp(ra)             // 重新获得当前监控程序栈顶指针
+    mv a0, ra
+    la ra, .USERRET2
+    STORE ra, TF_ra(a0)
+
     ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
-    jal WRITE_SERIAL                 // 告诉终端用户程序结束运行
+    jal WRITE_SERIAL                // 告诉终端用户程序结束运行
 
     j .DONE
 

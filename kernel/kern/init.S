@@ -6,11 +6,11 @@
     .p2align 2
     .global TCBT                    // thread control block table
 TCBT:
-    .long 0
-    .long 0
+    .dword 0
+    .dword 0
     .global current                 // current thread TCB address
 current:
-    .long 0
+    .dword 0
 /*
 #ifdef ENABLE_TLB                   // 声明页表
     .section .bss.ptes
@@ -53,31 +53,10 @@ bss_init:
     j   bss_init
 
 bss_init_done:
-/*
 #ifdef ENABLE_INT
-    mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
-    nop
-    xori t1, t0, (ST0_IM | ST0_IE | ST0_EXL | ST0_ERL)
-                                    // 取消错误、异常位，使得eret正常
-                                    // 见Vol3p196ERL,错误置位会让eret跳ErEPC
-    and t0, t0, t1                  // status Reg 的IE位和IM位置零
-    mtc0 t0, CP0_STATUS             // 暂停中断响应，直到启动完成
-    nop
-
-    mfc0 t0, CP0_STATUS
-    lui t1, %hi(ST0_BEV)
-    xor t1, t0, t1
-    and t0, t0, t1                  // status Reg 的BEV位置零
-    mtc0 t0, CP0_STATUS             // 中断处理转为正常模式
-    ori t2, zero, PAGE_SIZE
-    mtc0 t2, CP0_EBASE              // 设定中断响应基址为0x8000.1000
-    mfc0 t0, CP0_CAUSE
-    lui t1, %hi(CAUSEF_IV)
-    xor t1, t1, t0
-    and t0, t0, t1                  // Cause IV位置零
-    mtc0 t0, CP0_CAUSE              // 关闭中断特殊入口
+    la s0, EXCEPTION_HANDLER        // 设定异常相应地址
+    csrw mtvec, s0
 #endif
-*/
     la sp, KERNEL_STACK_INIT         // 设置内核栈
     or s0, sp, zero
     la t0, USER_STACK_INIT          // 设置用户栈
@@ -109,7 +88,6 @@ bss_init_done:
 //    ori t0, t0, STATUSF_IP4         // hardware interrupt source #2, irq #4
 //    mtc0 t0, CP0_STATUS
 //#endif
-
 
     ori t0, zero, TF_SIZE / 4       // 计数器
 .LC0:
@@ -144,8 +122,10 @@ bss_init_done:
     STORE sp, TF_sp(t6)                // 设置idle线程栈指针(调试用?)
 
     la t2, TCBT + XLEN
-    lw t2, 0(t2)                    // 取得thread1的TCB地址
-    la t1, current                 // 设置当前线程为thread1
+    LOAD t2, 0(t2)                    // 取得thread1的TCB地址
+
+    csrw mscratch, t2              // 设置当前线程为thread1
+    la t1, current   
     sw t2, 0(t1)
 
 /*

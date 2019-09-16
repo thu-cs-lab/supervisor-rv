@@ -3,7 +3,7 @@
 set timeout 5
 spawn term/term.py -t 127.0.0.1:6666 -c
 
-expect "running in 32bit" {} timeout {exit 1}
+expect "running in " {} timeout {exit 1}
 
 expect ">>"
 send "R\n"
@@ -42,7 +42,7 @@ expect "elapsed time" {} timeout {exit 1}
 
 expect ">>"
 send "R\n"
-expect -re "R3.+0x00000002"  {} timeout {exit 1}
+expect -re "R3.+00000002"  {} timeout {exit 1}
 
 # Test Assembler Label
 expect ">>"
@@ -62,8 +62,6 @@ send "bne x3, x2, loop\n"
 expect "]"
 send "jr ra\n"
 expect "]"
-send "nop\n"
-expect "]"
 send "\n"
 
 expect ">>"
@@ -73,24 +71,33 @@ expect "elapsed time" {} timeout {exit 1}
 
 expect ">>"
 send "R\n"
-expect -re "R2.+0x00000005"  {} timeout {exit 1}
+expect -re "R2.+00000005"  {} timeout {exit 1}
 
-# TLB required
-#expect ">>"
-#send "G\n"
-#send "0\n"
-#expect "elapsed time" {} timeout {exit 1}
+set test_int [lindex $argv 0]
 
-#expect ">>"
-#send "T\n"
-#send " -1\n"
-#expect -re "00000_000 +00100_000 +0 +1 +1 +1"  {} timeout {exit 1}
+if {$test_int == "y"} {
+    # Test putc syscall
+    expect ">>"
+    send "A\n"
+    send "80100000\n"
+    expect "one instruction per line"
+    expect "]"
+    send "li s0, 30\n"
+    expect "]"
+    send "li a0, 0x4F\n"
+    expect "]"
+    send "ecall\n"
+    expect "]"
+    send "jr ra\n"
+    expect "]"
+    send "\n"
 
-#expect ">>"
-#send "D\n"
-#send "0\n"
-#send "16\n"
-#expect -re "0x00000000: +0x24020001" {} timeout {exit 1}
+    expect ">>"
+    send "G\n"
+    send "80100000\n"
+    expect "O" {} timeout {exit 1}
+    expect "elapsed time" {} timeout {exit 1}
+}
 
 expect ">>"
 send "Q\n"

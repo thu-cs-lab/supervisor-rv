@@ -5,6 +5,7 @@
  *  为了测试时间，性能测试程序执行完毕会向串口写入令符。
  *==============================================================*/
 
+#include <common.h>
 #define TESTLOOP64  0x04000000      /*  64M约6.7千万次   */
 #define TESTLOOP32  0x02000000      /*  32M约3.4千万次   */
 #define TESTLOOP16  0x01000000      /*  16M约1.7千万次   */
@@ -92,3 +93,13 @@ UTEST_4MDCT:
     bne t0, zero, .LC3
     addi sp, sp, 4
     jr ra
+
+#ifdef ENABLE_INT
+UTEST_PUTC:
+    li s0, SYS_putc
+    li a0, 0x4F              // 'O'
+    ecall
+    li a0, 0x4B              // 'K'
+    ecall
+    jr ra
+#endif
