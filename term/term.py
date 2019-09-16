@@ -133,38 +133,97 @@ def single_line_disassmble(binary_instr, addr):
 def run_T():
     outp.write(b'T')
     addr = byte_string_to_int(inp.read(xlen))
-    if addr == -1:
+    if addr == (2**(8*xlen))-1:
         print("Paging not enabled")
         return
     print("Page table at %08x" % addr)
-    print("Virtual Address | Physical Address | D | A | G | U | X | W | R | V")
-    for vpn1 in range(0, 1024):
-        outp.write(b'D')
-        outp.write(int_to_byte_string(addr))
-        outp.write(int_to_byte_string(4))
-        entry = byte_string_to_int(inp.read(4))
-        if (entry & 1) != 0:
-            # Valid
-            if (entry & 0xe) == 0:
-                # non-leaf
-                addr2 = (entry >> 10) << 12
-                for vpn2 in range(0, 1024):
-                    outp.write(b'D')
-                    outp.write(int_to_byte_string(addr2))
-                    outp.write(int_to_byte_string(4))
-                    entry2 = byte_string_to_int(inp.read(4))
-                    if (entry2 & 1) != 0:
-                        # Valid
-                        print("    %08x          %08x       %x   %x   %x   %x   %x   %x   %x   %x" %
-                            ((vpn1 << 22) | (vpn2 << 12), (entry2 >> 10) << 12, (entry2 >> 7) & 1, (entry2 >> 6) & 1, (entry2 >> 5) & 1,
-                                (entry2 >> 4) & 1, (entry2 >> 3) & 1, (entry2 >> 2) & 1, (entry2 >> 1) & 1, entry2 & 1))
-                    addr2 = addr2 + 4
-            else:
-                print("    %08x          %08x       %x   %x   %x   %x   %x   %x   %x   %x" %
-                    (vpn1 << 22, (entry >> 10) << 12, (entry >> 7) & 1, (entry >> 6) & 1, (entry >> 5) & 1,
-                        (entry >> 4) & 1, (entry >> 3) & 1, (entry >> 2) & 1, (entry >> 1) & 1, entry & 1))
+    print("     Virtual Address     |      Physical Address     | D | A | G | U | X | W | R | V")
+    if xlen == 4:
+        for vpn1 in range(0, 1024):
+            outp.write(b'D')
+            outp.write(int_to_byte_string(addr))
+            outp.write(int_to_byte_string(4))
+            entry = byte_string_to_int(inp.read(4))
+            if (entry & 1) != 0:
+                # Valid
+                if (entry & 0xe) == 0:
+                    # non-leaf
+                    addr2 = (entry >> 10) << 12
+                    for vpn0 in range(0, 1024):
+                        outp.write(b'D')
+                        outp.write(int_to_byte_string(addr2))
+                        outp.write(int_to_byte_string(4))
+                        entry2 = byte_string_to_int(inp.read(4))
+                        if (entry2 & 1) != 0:
+                            # Valid
+                            size = (1 << 12) - 1
+                            vaddr = (vpn1 << 22) | (vpn0 << 12)
+                            paddr = (entry2 >> 10) << 12
+                            print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                                (vaddr, vaddr + size, paddr, paddr + size, (entry2 >> 7) & 1, (entry2 >> 6) & 1, (entry2 >> 5) & 1,
+                                    (entry2 >> 4) & 1, (entry2 >> 3) & 1, (entry2 >> 2) & 1, (entry2 >> 1) & 1, entry2 & 1))
+                        addr2 = addr2 + 4
+                else:
+                    size = (1 << 22) - 1
+                    vaddr = vpn1 << 22
+                    paddr = (entry >> 10) << 12
+                    print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                        (vaddr, vaddr + size, paddr, paddr + size, (entry >> 7) & 1, (entry >> 6) & 1,
+                            (entry >> 5) & 1, (entry >> 4) & 1, (entry >> 3) & 1, (entry >> 2) & 1, (entry >> 1) & 1, entry & 1))
 
-        addr = addr + 4
+            addr = addr + 4
+    else:
+        for vpn2 in range(0, 512):
+            outp.write(b'D')
+            outp.write(int_to_byte_string(addr))
+            outp.write(int_to_byte_string(8))
+            entry = byte_string_to_int(inp.read(8))
+            if (entry & 1) != 0:
+                # Valid
+                if (entry & 0xe) == 0:
+                    # non-leaf
+                    addr2 = (entry >> 10) << 12
+                    for vpn1 in range(0, 512):
+                        outp.write(b'D')
+                        outp.write(int_to_byte_string(addr2))
+                        outp.write(int_to_byte_string(8))
+                        entry2 = byte_string_to_int(inp.read(8))
+                        if (entry2 & 1) != 0:
+                            # Valid
+                            if (entry2 & 0xe) == 0:
+                                # non-leaf
+                                addr3 = (entry2 >> 10) << 12
+                                for vpn0 in range(0, 512):
+                                    outp.write(b'D')
+                                    outp.write(int_to_byte_string(addr3))
+                                    outp.write(int_to_byte_string(8))
+                                    entry3 = byte_string_to_int(inp.read(8))
+                                    if (entry3 & 1) != 0:
+                                        # Valid
+                                        size = (1 << 12) - 1
+                                        vaddr = (vpn2 << 30) | (vpn1 << 21) | (vpn0 << 12)
+                                        paddr = (entry3 >> 10) << 12
+                                        print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                                            (vaddr, vaddr + size, paddr, paddr + size, (entry3 >> 7) & 1, (entry3 >> 6) & 1, (entry3 >> 5) & 1,
+                                                (entry3 >> 4) & 1, (entry3 >> 3) & 1, (entry3 >> 2) & 1, (entry3 >> 1) & 1, entry3 & 1))
+                                    addr3 = addr3 + 8
+                            else:
+                                size = (1 << 21) - 1
+                                vaddr = (vpn2 << 30) | (vpn1 << 21)
+                                paddr = (entry2 >> 10) << 12
+                                print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                                    (vaddr, vaddr + size, paddr, paddr + size, (entry2 >> 7) & 1, (entry2 >> 6) & 1, (entry2 >> 5) & 1,
+                                        (entry2 >> 4) & 1, (entry2 >> 3) & 1, (entry2 >> 2) & 1, (entry2 >> 1) & 1, entry2 & 1))
+                        addr2 = addr2 + 8
+                else:
+                    size = (1 << 30) - 1
+                    vaddr = vpn2 << 30
+                    paddr = (entry >> 10) << 12
+                    print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
+                        (vaddr, vaddr + size, paddr, paddr + size, (entry >> 7) & 1, (entry >> 6) & 1, (entry >> 5) & 1,
+                            (entry >> 4) & 1, (entry >> 3) & 1, (entry >> 2) & 1, (entry >> 1) & 1, entry & 1))
+
+            addr = addr + 8
 
 def run_A(addr):
     print("one instruction per line, empty line to end.")

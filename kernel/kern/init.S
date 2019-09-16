@@ -20,16 +20,49 @@ PAGE_TABLE:
     .rept 1024
     .long 0
     .endr
+#ifdef RV64
+PAGE_TABLE_2:
+    .rept 1024
+    .long 0
+    .endr
+#endif
 PAGE_TABLE_USER_CODE:
     .rept 1024
     .long 0
     .endr
-PAGE_TABLE_KERNEL_CODE:
-    .long 0x200000fb                // 0x80000000 -> 0x80000000 DAGUX-RV
-    .rept 1023
+#ifdef RV64
+PAGE_TABLE_USER_CODE_2:
+    .rept 1024
     .long 0
     .endr
+#endif
+PAGE_TABLE_KERNEL_CODE:
+#ifdef RV32
+    .long 0x200000fb                // 0x80000000 -> 0x80000000 DAGUX-RV
+    .rept 255
+    .long 0
+    .endr
+    .long 0x200400fb                // 0x80000000 -> 0x80100000 DAGUX-RV
+    .rept 767
+    .long 0
+    .endr
+#else
+    .dword 0x200000fb                // 0x80000000 -> 0x80000000 DAGUX-RV
+    .rept 511
+    .dword 0
+    .endr
+#endif
 PAGE_TABLE_USER_STACK:
+    .rept 1024
+    .long 0
+    .endr
+#ifdef RV64
+PAGE_TABLE_USER_STACK_2:
+    .rept 1024
+    .long 0
+    .endr
+#endif
+PAGE_TABLE_USER_STACK_3:
     .rept 1024
     .long 0
     .endr
@@ -59,7 +92,7 @@ bss_init_done:
 #endif
     la sp, KERNEL_STACK_INIT         // 设置内核栈
     or s0, sp, zero
-    la t0, USER_STACK_INIT          // 设置用户栈
+    li t0, USER_STACK_INIT          // 设置用户栈
     la t1, uregs_sp
     STORE t0, 0(t1)                 // 写入用户空间备份
     la t1, uregs_fp
@@ -132,18 +165,36 @@ bss_init_done:
     sw t2, 0(t1)
 
 #ifdef ENABLE_PAGING
+#ifdef RV32
+    // 一级页表，PAGE_TABLE 为一级页表
     la t0, PAGE_TABLE
+#else
+    // 三级页表，PAGE_TABLE 为一级页表，PAGE_TABLE_2为二级页表
+    la t0, PAGE_TABLE_2
+    la t1, PAGE_TABLE
+    srli t0, t0, 2
+    ori t0, t0, 0xf1
+    sd t0, 0(t1)
 
-    // 填写用户代码部分的页表
+    la t0, PAGE_TABLE_2
+#endif
+
+    // 填写用户代码的页表
+    // 需要映射 0x00000000-0x002FF000
+    // Sv32 时都在一个页中
     la t1, PAGE_TABLE_USER_CODE
+#ifdef RV32
     li t3, 768
+#else
+    li t3, 512
+#endif
     li t2, 0
 .LOOP_USER_CODE:
     li t4, 0x200400fb  // 0x80100000 DAGUX-RV
     slli t5, t2, 10
     add t4, t4, t5
     sw t4, 0(t1)
-    addi t1, t1, 4
+    addi t1, t1, XLEN
     addi t2, t2, 1
     bne t2, t3, .LOOP_USER_CODE
 
@@ -152,26 +203,57 @@ bss_init_done:
     ori t1, t1, 0xf1
     sw t1, 0(t0)
 
+    // Sv39 时需要第二个页
+    // 映射 0x00200000-0x002FF000
+#ifdef RV64
+    la t1, PAGE_TABLE_USER_CODE_2
+    li t3, 256
+    li t2, 0
+.LOOP_USER_CODE_2:
+    li t4, 0x200c00fb  // 0x80300000 DAGUX-RV
+    slli t5, t2, 10
+    add t4, t4, t5
+    sw t4, 0(t1)
+    addi t1, t1, XLEN
+    addi t2, t2, 1
+    bne t2, t3, .LOOP_USER_CODE_2
+
+    la t1, PAGE_TABLE_USER_CODE_2
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    sw t1, 8(t0)
+#endif
+
+    // 内核代码段映射
+    // 需要映射 0x80000000 和 0x80100000
+    la t0, PAGE_TABLE
     la t1, PAGE_TABLE_KERNEL_CODE
     srli t1, t1, 2
     ori t1, t1, 0xf1
-    li t2, 2048
+#ifdef RV32
+    li t2, 512*4
+#else
+    li t2, 2*8
+#endif
     add t2, t0, t2
     sw t1, 0(t2)
 
-    // 填写用户数据部分的页表
+    // 填写用户数据的页表
+    // 需要映射 0x7FC10000-0x7FFFF000
+    // Sv32 情况下在一个二级页表内
+#ifdef RV32
     la t1, PAGE_TABLE_USER_STACK
     addi t1, t1, 4*16
     li t3, 1024
     li t2, 16
-.PAGE_TABLE_USER_STACK:
+.LOOP_USER_STACK:
     li t4, 0x200fc0f7  // 0x803F0000 DAGU-WRV
     slli t5, t2, 10
     add t4, t4, t5
     sw t4, 0(t1)
     addi t1, t1, 4
     addi t2, t2, 1
-    bne t2, t3, .PAGE_TABLE_USER_STACK
+    bne t2, t3, .LOOP_USER_STACK
 
     la t1, PAGE_TABLE_USER_STACK
     srli t1, t1, 2
@@ -179,9 +261,65 @@ bss_init_done:
     li t2, 2044
     add t2, t0, t2
     sw t1, 0(t2)
+#else 
+    // Sv39 时有单独的二级页表和两个三级页表
+    // 三级页表 0x7fc10000 - 0x7fdff000
+    la t1, PAGE_TABLE_USER_STACK_2
+    addi t1, t1, 16*8
+    li t3, 512
+    li t2, 16
+.LOOP_USER_STACK_2:
+    li t4, 0x200fc0f7  // 0x803F0000 DAGU-WRV
+    slli t5, t2, 10
+    add t4, t4, t5
+    sw t4, 0(t1)
+    addi t1, t1, 8
+    addi t2, t2, 1
+    bne t2, t3, .LOOP_USER_STACK_2
 
+    // 三级页表 0x7ff00000 - 0x7ffff000
+    la t1, PAGE_TABLE_USER_STACK_3
+    li t3, 512
+    li t2, 0
+.LOOP_USER_STACK_3:
+    li t4, 0x2017c0f7  // 0x805F0000 DAGU-WRV
+    slli t5, t2, 10
+    add t4, t4, t5
+    sw t4, 0(t1)
+    addi t1, t1, 8
+    addi t2, t2, 1
+    bne t2, t3, .LOOP_USER_STACK_3
+
+    la t0, PAGE_TABLE_USER_STACK
+    la t1, PAGE_TABLE_USER_STACK_2
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    li t2, 4080
+    add t2, t0, t2
+    sw t1, 0(t2)
+    la t1, PAGE_TABLE_USER_STACK_3
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    li t2, 4088
+    add t2, t0, t2
+    sw t1, 0(t2)
+
+    la t0, PAGE_TABLE
+    la t1, PAGE_TABLE_USER_STACK
+    srli t1, t1, 2
+    ori t1, t1, 0xf1
+    li t2, 8
+    add t2, t0, t2
+    sw t1, 0(t2)
+#endif
+
+    la t0, PAGE_TABLE
     srli t0, t0, 12
+#ifdef RV32
     li t1, SATP_SV32
+#else
+    li t1, SATP_SV39
+#endif
     or t0, t0, t1
     csrw satp, t0
     sfence.vma

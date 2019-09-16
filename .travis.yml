@@ -19,11 +19,15 @@ script:
 - cp kernel/kernel.bin kernel/kernel32.bin
 - make BITS=32 EN_INT=y -C kernel/
 - cp kernel/kernel.bin kernel/kernel32-int.bin
+- make BITS=32 EN_INT=y EN_PAGING=y -C kernel/
+- cp kernel/kernel.bin kernel/kernel32-paging.bin
 - make BITS=64 -C kernel/
 - cp kernel/kernel.bin kernel/kernel64.bin
 - make BITS=64 EN_INT=y -C kernel/
 - cp kernel/kernel.bin kernel/kernel64-int.bin
-- travis_wait 2 make BITS=32 EN_INT=n sim -C kernel
+- make BITS=64 EN_INT=y EN_PAGING=y -C kernel/
+- cp kernel/kernel.bin kernel/kernel64-paging.bin
+- travis_wait 2 make BITS=32 sim -C kernel
   || true
 - ./.test-script n
 - killall qemu-system-riscv32
@@ -31,13 +35,21 @@ script:
   || true
 - ./.test-script y
 - killall qemu-system-riscv32
-- travis_wait 2 make BITS=64 EN_INT=n sim -C kernel
+- travis_wait 2 make BITS=32 EN_INT=y EN_PAGING=y sim -C kernel
+  || true
+- ./.test-script y y
+- killall qemu-system-riscv32
+- travis_wait 2 make BITS=64 sim -C kernel
   || true
 - ./.test-script n
 - killall qemu-system-riscv64
 - travis_wait 2 make BITS=64 EN_INT=y sim -C kernel
   || true
 - ./.test-script y
+- killall qemu-system-riscv64
+- travis_wait 2 make BITS=64 EN_INT=y EN_PAGING=y sim -C kernel
+  || true
+- ./.test-script y y
 - killall qemu-system-riscv64
 addons:
   apt:

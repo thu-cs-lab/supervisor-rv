@@ -1,6 +1,9 @@
 #!/usr/bin/expect
 
 set timeout 5
+set test_int [lindex $argv 0]
+set test_paging [lindex $argv 1]
+
 spawn term/term.py -t 127.0.0.1:6666 -c
 
 expect "running in " {} timeout {exit 1}
@@ -73,8 +76,6 @@ expect ">>"
 send "R\n"
 expect -re "R2.+00000005"  {} timeout {exit 1}
 
-set test_int [lindex $argv 0]
-
 if {$test_int == "y"} {
     # Test putc syscall
     expect ">>"
@@ -101,6 +102,21 @@ if {$test_int == "y"} {
     send "80100000\n"
     expect "OK" {} timeout {exit 1}
     expect "elapsed time" {} timeout {exit 1}
+}
+
+if {$test_paging == "y"} {
+    # Check paging table
+    expect ">>"
+    send "T\n"
+    expect "Page table at"
+    # user code
+    expect -re ".+00000000.+80100000"  {} timeout {exit 1}
+    expect -re ".+002ff000.+803ff000"  {} timeout {exit 1}
+    # user stack
+    expect -re ".+7fc10000.+80400000"  {} timeout {exit 1}
+    expect -re ".+7ffff000.+807ef000"  {} timeout {exit 1}
+    # kernel code
+    expect -re ".+80000000.+80000000"  {} timeout {exit 1}
 }
 
 expect ">>"

@@ -1,4 +1,4 @@
-// You don't have to care about this file if you don't enable interrupt and TLB.
+// You don't have to care about this file if you don't enable interrupt and paging.
 
     .p2align 2
     .section .text.init
