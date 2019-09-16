@@ -32,9 +32,10 @@ Kernel 运行后会先通过串口输出版本号，该功能可作为检验其�
 
 ### 基础版本
 
-基础版本的 Kernel 共使用了21条不同的指令，它们是：
+基础版本的 Kernel 共使用了 19 条不同的指令，它们是：
 
 ```asm
+ADD   0000000SSSSSsssss000ddddd0110011
 ADDI  iiiiiiiiiiiisssss000ddddd0010011
 AND   0000000SSSSSsssss111ddddd0110011
 ANDI  iiiiiiiiiiiisssss111ddddd0010011
@@ -53,6 +54,14 @@ SLLI  0000000iiiiisssss001ddddd0010011
 SRLI  0000000iiiiisssss101ddddd0010011
 SW    iiiiiiiSSSSSsssss010iiiii0100011
 XOR   0000000SSSSSsssss100ddddd0110011
+```
+
+如果实现的是 RISC-V 64位，则额外需要实现以下指令：
+
+```asm
+ADDIW iiiiiiiiiiiisssss000ddddd0011011
+LD    iiiiiiiiiiiisssss011ddddd0000011
+SD    iiiiiiiSSSSSsssss011iiiii0100011
 ```
 
 根据 RISC-V 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
@@ -90,10 +99,13 @@ Kernel 的入口地址为 0x80000000，对应汇编代码`kern/init.S`中的 `ST
 
 为支持中断，CPU 要额外实现以下指令
 
-1. `ERET` 01000010000000000000000000011000
-1. `MFC0` 01000000000tttttddddd00000000lll
-1. `MTC0` 01000000100tttttddddd00000000lll
-1. `SYSCALL` 000000cccccccccccccccccccc001100
+```asm
+CSRRS  ccccccccccccsssss010ddddd1110011
+CSRRW  ccccccccccccsssss001ddddd1110011
+EBREAK 00000000000100000000000001110011
+ECALL  00000000000000000000000001110011
+MRET   00110000001000000000000001110011
+```
 
 此外还需要实现 CP0 寄存器的这些字段：
 
