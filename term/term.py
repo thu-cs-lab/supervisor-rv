@@ -149,10 +149,10 @@ def run_T():
                 if (entry & 0xe) == 0:
                     # non-leaf
                     addr2 = (entry >> 10) << 12
+                    outp.write(b'D')
+                    outp.write(int_to_byte_string(addr2))
+                    outp.write(int_to_byte_string(4096))
                     for vpn0 in range(0, 1024):
-                        outp.write(b'D')
-                        outp.write(int_to_byte_string(addr2))
-                        outp.write(int_to_byte_string(4))
                         entry2 = byte_string_to_int(inp.read(4))
                         if (entry2 & 1) != 0:
                             # Valid
@@ -162,7 +162,6 @@ def run_T():
                             print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
                                 (vaddr, vaddr + size, paddr, paddr + size, (entry2 >> 7) & 1, (entry2 >> 6) & 1, (entry2 >> 5) & 1,
                                     (entry2 >> 4) & 1, (entry2 >> 3) & 1, (entry2 >> 2) & 1, (entry2 >> 1) & 1, entry2 & 1))
-                        addr2 = addr2 + 4
                 else:
                     size = (1 << 22) - 1
                     vaddr = vpn1 << 22
@@ -193,10 +192,10 @@ def run_T():
                             if (entry2 & 0xe) == 0:
                                 # non-leaf
                                 addr3 = (entry2 >> 10) << 12
+                                outp.write(b'D')
+                                outp.write(int_to_byte_string(addr3))
+                                outp.write(int_to_byte_string(4096))
                                 for vpn0 in range(0, 512):
-                                    outp.write(b'D')
-                                    outp.write(int_to_byte_string(addr3))
-                                    outp.write(int_to_byte_string(8))
                                     entry3 = byte_string_to_int(inp.read(8))
                                     if (entry3 & 1) != 0:
                                         # Valid
@@ -206,7 +205,6 @@ def run_T():
                                         print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
                                             (vaddr, vaddr + size, paddr, paddr + size, (entry3 >> 7) & 1, (entry3 >> 6) & 1, (entry3 >> 5) & 1,
                                                 (entry3 >> 4) & 1, (entry3 >> 3) & 1, (entry3 >> 2) & 1, (entry3 >> 1) & 1, entry3 & 1))
-                                    addr3 = addr3 + 8
                             else:
                                 size = (1 << 21) - 1
                                 vaddr = (vpn2 << 30) | (vpn1 << 21)
