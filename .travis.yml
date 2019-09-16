@@ -49,7 +49,9 @@ deploy:
   skip_cleanup: true
   file:
     - kernel/kernel32.bin
+    - kernel/kernel32-int.bin
     - kernel/kernel64.bin
+    - kernel/kernel64-int.bin
   on:
     repo: jiegec/supervisor-rv
     tags: true
