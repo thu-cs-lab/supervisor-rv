@@ -25,19 +25,19 @@ script:
 - cp kernel/kernel.bin kernel/kernel64-int.bin
 - travis_wait 2 make BITS=32 EN_INT=n sim -C kernel
   || true
-- "./.test-script" n
+- ./.test-script n
 - killall qemu-system-riscv32
 - travis_wait 2 make BITS=32 EN_INT=y sim -C kernel
   || true
-- "./.test-script" y
+- ./.test-script y
 - killall qemu-system-riscv32
 - travis_wait 2 make BITS=64 EN_INT=n sim -C kernel
   || true
-- "./.test-script" n
+- ./.test-script n
 - killall qemu-system-riscv64
 - travis_wait 2 make BITS=64 EN_INT=y sim -C kernel
   || true
-- "./.test-script" y
+- ./.test-script y
 - killall qemu-system-riscv64
 addons:
   apt:
