@@ -33,15 +33,13 @@ PTESTACK:
 #endif
 */
 
-    .text
-    .p2align 2
+    .section .rodata
 monitor_version:
     .asciz "MONITOR for RISC-V - initialized."
 
-    /* start address for the .bss section. defined in linker script */
-    .word   _sbss
-    /* end address for the .bss section. defined in linker script */
-    .word   _ebss
+    .text
+    .p2align 2
+
     .global START
 START:
     la s10, _sbss
@@ -124,7 +122,10 @@ bss_init_done:
     la t2, TCBT + XLEN
     LOAD t2, 0(t2)                    // 取得thread1的TCB地址
 
+#ifdef ENABLE_INT
     csrw mscratch, t2              // 设置当前线程为thread1
+#endif
+
     la t1, current   
     sw t2, 0(t1)
 

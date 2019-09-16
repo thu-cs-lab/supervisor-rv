@@ -5,7 +5,7 @@
     .global uregs
 uregs:
     .rept 32                        // 第1个为用户程序入口地址临时保存
-    .long 0
+    .dword 0
     .endr
 
     .text

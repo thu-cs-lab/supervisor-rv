@@ -32,7 +32,7 @@ endif
 
 CONFIG_FILE := .config_$(BITS)_$(EN_INT)
 
-.PHONY: all clean show-utest sim debug
+.PHONY: all clean show-utest sim debug inst
 
 all: checkdirs $(TARGET) kernel.bin kernel.asm
 
@@ -61,10 +61,13 @@ show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8,16\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
 sim: checkdirs $(TARGET)
-	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server -s
+	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor none -serial tcp::6666,server -s
 
 debug: checkdirs $(TARGET)
-	$(QEMU) -M virt -m 32M -kernel kernel.elf -nographic -monitor none -serial tcp::6666,server -S -s
+	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor none -serial tcp::6666,server -S -s
+
+inst: checkdirs $(TARGET)
+	@$(GCCPREFIX)objdump -d $(TARGET) -M no-aliases | awk '{print $$3}' | sort | uniq
 
 clean:
 	-$(RM) -r $(OBJDIR)
