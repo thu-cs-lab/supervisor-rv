@@ -253,6 +253,39 @@ def run_A(addr):
         outp.write(binary[i:i+4])
         addr = addr + 4
 
+def run_F(addr, file_name):
+    if not os.path.isfile(file_name):
+        print("file %s does not exist" % file_name)
+        return
+    print("reading from file %s" % file_name)
+    offset = addr & 0xfffffff
+    prompt_addr = addr
+    asm = ".set noreorder\n.set noat\n.org {:#x}\n".format(offset)
+    with open(file_name, "r") as f:
+        for line in f:
+            print('[0x%04x] %s' % (prompt_addr, line.strip()))
+            if line == '':
+                break
+            elif re.match("\\w+:$", line) is not None:
+                # ASM label only
+                asm += line + "\n"
+                continue
+            try:
+                asm += ".word {:#x}\n".format(int(line, 16))
+            except ValueError:
+                instr = multi_line_asm(".set noat\n" + line)
+                if instr == '':
+                    continue
+                asm += line + "\n"
+            prompt_addr = prompt_addr + 4
+    binary = multi_line_asm(asm)
+    for i in range(offset, len(binary), 4):
+        outp.write(b'A')
+        outp.write(int_to_byte_string(addr))
+        outp.write(int_to_byte_string(4))
+        outp.write(binary[i:i+4])
+        addr = addr + 4
+
 
 def run_R():
     outp.write(b'R')
@@ -336,6 +369,10 @@ def MainLoop():
             elif cmd == 'A':
                 addr = raw_input('addr: 0x')
                 run_A(int(addr, 16))
+            elif cmd == 'F':
+                file_name = raw_input('>>file name: ')
+                addr = raw_input('>>addr: 0x')
+                run_F(int(addr, 16), file_name)
             elif cmd == 'R':
                 run_R()
             elif cmd == 'D':
