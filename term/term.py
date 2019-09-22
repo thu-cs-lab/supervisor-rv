@@ -89,7 +89,7 @@ def multi_line_asm(instr):
         tmp_obj.close()
         tmp_binary.close()
         subprocess.check_output([
-            CMD_ASSEMBLER,  tmp_asm.name, '-o', tmp_obj.name])
+            CMD_ASSEMBLER,  tmp_asm.name, '-march={}i'.format(arch), '-o', tmp_obj.name])
         subprocess.check_call([
             CMD_BINARY_COPY, '-j', '.text', '-O', 'binary', tmp_obj.name, tmp_binary.name])
         with open(tmp_binary.name, 'rb') as f:
@@ -243,7 +243,7 @@ def run_A(addr):
             if instr == '':
                 continue
             asm += line + "\n"
-        prompt_addr = prompt_addr + 4
+        prompt_addr = addr + len(multi_line_asm(asm)) - offset
     # print(asm)
     binary = multi_line_asm(asm)
     for i in range(offset, len(binary), 4):
@@ -277,7 +277,7 @@ def run_F(addr, file_name):
                 if instr == '':
                     continue
                 asm += line + "\n"
-            prompt_addr = prompt_addr + 4
+            prompt_addr = addr + len(multi_line_asm(asm)) - offset
     binary = multi_line_asm(asm)
     for i in range(offset, len(binary), 4):
         outp.write(b'A')

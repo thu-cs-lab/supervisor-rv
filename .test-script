@@ -17,6 +17,8 @@ send "A\n"
 send "80100000\n"
 expect "one instruction per line"
 expect "]"
+send "li t0, 0x12345678\n"
+expect "]"
 send "addi x2, x0, 1\n"
 expect "]"
 send "add x3, x2, x2\n"
@@ -31,7 +33,7 @@ expect ">>"
 send "D\n"
 send "80100000\n"
 send "16\n"
-expect -re "0x80100000: +0x00100113" {} timeout {exit 1}
+expect -re "0x80100008: +0x00100113" {} timeout {exit 1}
 
 expect ">>"
 send "U\n"
