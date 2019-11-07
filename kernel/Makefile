@@ -11,6 +11,7 @@ OBJDIR	:= obj
 INCLUDE	:= include
 SRCDIR	:= kern
 SRC	:= $(foreach sdir, $(SRCDIR), $(wildcard $(sdir)/*.S))
+HEADER	:= $(foreach sdir, $(INCLUDE), $(wildcard $(sdir)/*.h))
 OBJ	:= $(patsubst $(SRCDIR)/%.S, $(OBJDIR)/%.o, $(SRC))
 TARGET	:= kernel.elf
 ASFLAGS	:= -D__ASSEMBLY__ -g
@@ -54,7 +55,7 @@ checkdirs: $(OBJDIR)
 $(OBJDIR):
 	test -d $@ || mkdir $@
 
-$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S $(CONFIG_FILE)
+$(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S $(CONFIG_FILE) $(HEADER)
 	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAGS)
 
 kernel.bin: $(TARGET)
