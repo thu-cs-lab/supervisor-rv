@@ -125,7 +125,7 @@ bss_init_done:
     ori t0, zero, TF_SIZE / 4       // 计数器
 .LC0:
     addi t0, t0, -1                // 滚动计数器
-    addi sp, sp, -4                // 移动栈指针
+    addi sp, sp, -XLEN                // 移动栈指针
     STORE zero, 0(sp)                  // 初始化栈空间
     bne t0, zero, .LC0              // 初始化循环
     la t0, TCBT           // 载入TCBT地址
