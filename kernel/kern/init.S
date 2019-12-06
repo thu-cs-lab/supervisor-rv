@@ -100,7 +100,7 @@ bss_init_done:
 
     /* init serial */
     /* see ucore/kern/driver/console.c */
-    lui t0, %hi(COM1)               // all COM_* shares the same %hi
+    li t0, COM1               // all COM_* shares the same %hi
     li t1, COM_FCR_CONFIG           // console.c:54
     sb t1, %lo(COM_FCR_OFFSET)(t0)  // :57
     li t1, COM_LCR_DLAB

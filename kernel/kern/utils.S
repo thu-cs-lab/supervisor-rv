@@ -9,7 +9,7 @@
     .global READ_SERIAL_XLEN
 
 WRITE_SERIAL:                       // 写串口：将a0的低八位写入串口
-    lui t0, %hi(COM1)
+    li t0, COM1
 .TESTW:
     lb t1, %lo(COM_LSR_OFFSET)(t0)  // 查看串口状态
     andi t1, t1, COM_LSR_THRE       // 截取写状态位
@@ -20,7 +20,7 @@ WRITE_SERIAL:                       // 写串口：将a0的低八位写入串口
     jr ra
 
 READ_SERIAL:                        // 读串口：将读到的数据写入a0低八位
-    lui t0, %hi(COM1)
+    li t0, COM1
 .TESTR:
     lb t1, %lo(COM_LSR_OFFSET)(t0)
     andi t1, t1, COM_LSR_DR         // 截取读状态位
