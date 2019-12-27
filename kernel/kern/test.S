@@ -26,7 +26,7 @@ UTEST_SIMPLE:
      *  不执行延迟槽，执行这段程序需至少320M指令，320M/time可算得频率。
      */
 UTEST_1PTB:
-    lui t5, %hi(TESTLOOP64)         // 装入64M
+    lui t0, %hi(TESTLOOP64)         // 装入64M
 .LC0:
     addi t0, t0, -1                // 滚动计数器
     ori t1, zero, 0
