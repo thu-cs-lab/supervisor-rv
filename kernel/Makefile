@@ -28,16 +28,19 @@ endif
 override EN_INT ?= n
 ifeq ($(EN_INT), y)
 	ASFLAGS += -DENABLE_INT
-	EN_PAGING = n
 endif
 
 override EN_PAGING ?= n
 ifeq ($(EN_PAGING), y)
 	ASFLAGS += -DENABLE_PAGING
-	EN_PAGING = n
 endif
 
-CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)
+override EN_FENCEI ?= n
+ifeq ($(EN_FENCEI), y)
+	ASFLAGS += -DENABLE_FENCEI
+endif
+
+CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)_$(EN_FENCEI)
 
 .PHONY: all clean show-utest sim debug inst
 

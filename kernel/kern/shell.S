@@ -121,6 +121,10 @@ SHELL:
     addi s1, s1, 4                  // 移动写指针
     bne s2, zero, .LC3              // 写循环
 
+#ifdef ENABLE_FENCEI
+    fence.i                         // 有 Cache 时让写入的代码生效
+#endif
+
     LOAD s1, 0(sp)                    // 恢复s1,s2
     LOAD s2, XLEN(sp)
     addi sp, sp, 2*XLEN

@@ -31,6 +31,12 @@ Kernel 使用汇编语言编写，使用到的指令有 20 余条，均符合 RI
 `make EN_INT=y`
 `make sim`
 
+目前所有可能出现的开关有：
+
+1. EN_INT： 打开中断和异常支持
+2. EN_PAGING：打开页表支持
+3. EN_FENCEI：如果实现了 L1 Cache 并且分离了 I Cache 和 D Cache 则要开启，在写入代码后执行 FENCE.I 指令
+
 若要在硬件上运行，使用开发板提供的工具，将 `kernel.bin` 写入内存 0x80000000 地址位置，并让处理器复位从 0x80000000 地址处开始执行，Kernel 就运行起来了。
 
 Kernel 运行后会先通过串口输出版本号，该功能可作为检验其正常运行的标志。之后 Kernel 将等待 Term 从串口发来的命令，关于 Term 的使用将在后续章节描述。
@@ -202,7 +208,7 @@ Term 程序位于 `term` 文件夹中，可执行文件为 `term.py` 。对于�
 
 监控程序附带了几个测试程序，代码见 `kern/test.S` 。我们可以通过命令
 
-`make show-utest`
+`make EN_XXX=y show-utest`
 
 来查看测试程序入口地址。记下这些地址，并在 Term 中使用 G 命令运行它们。
 
@@ -315,7 +321,6 @@ num: 20
 ```
 
 如果是 RV64 ，上面的 `addi` 指令会相应地变成 `addiw` 指令。
-
 
 
 ## 参考文献
