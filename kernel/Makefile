@@ -37,7 +37,7 @@ ifeq ($(EN_PAGING), y)
 	EN_PAGING = n
 endif
 
-CONFIG_FILE := .config_$(BITS)_$(EN_PAGING)
+CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)
 
 .PHONY: all clean show-utest sim debug inst
 
@@ -74,7 +74,7 @@ debug: checkdirs $(TARGET)
 	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor stdio -serial tcp::6666,server -S -s
 
 inst: checkdirs $(TARGET)
-	@$(GCCPREFIX)objdump -d $(TARGET) -M no-aliases | awk '{print $$3}' | sort | uniq
+	@$(GCCPREFIX)objdump -d $(TARGET) -M no-aliases | awk '{print $$3}' | sort | uniq | grep -v section | grep -v format
 
 clean:
 	-$(RM) -r $(OBJDIR)
