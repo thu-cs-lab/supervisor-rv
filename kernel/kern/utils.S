@@ -4,6 +4,8 @@
     .p2align 2
     .text
     .global WRITE_SERIAL
+    .global WRITE_SERIAL_WORD
+    .global WRITE_SERIAL_XLEN
     .global READ_SERIAL
     .global READ_SERIAL_WORD
     .global READ_SERIAL_XLEN
@@ -17,6 +19,49 @@ WRITE_SERIAL:                       // 写串口：将a0的低八位写入串口
     j .TESTW                        // 检测验证，忙等待
 .WSERIAL:
     sb a0, %lo(COM_THR_OFFSET)(t0)  // 写入寄存器a0中的值
+    jr ra
+
+WRITE_SERIAL_WORD:
+    addi sp, sp, -2*XLEN
+    STORE ra, 0x0(sp)
+    STORE s0, XLEN(sp)
+
+    mv s0, a0
+
+    andi a0, a0, 0xFF
+    jal WRITE_SERIAL
+    srli a0, s0, 8
+
+    andi a0, a0, 0xFF
+    jal WRITE_SERIAL
+    srli a0, s0, 16
+
+    andi a0, a0, 0xFF
+    jal WRITE_SERIAL
+    srli a0, s0, 24
+
+    andi a0, a0, 0xFF
+    jal WRITE_SERIAL
+    mv a0, s0
+
+    LOAD ra, 0x0(sp)
+    LOAD s0, XLEN(sp)
+    addi sp, sp, 2*XLEN
+
+    jr ra
+
+WRITE_SERIAL_XLEN:
+    addi sp, sp, -XLEN
+    STORE ra, 0x0(sp)
+
+    jal WRITE_SERIAL_WORD
+#ifdef RV64
+    srli a0, a0, 32
+    jal WRITE_SERIAL_WORD
+#endif
+    LOAD ra, 0x0(sp)
+    addi sp, sp, XLEN
+
     jr ra
 
 READ_SERIAL:                        // 读串口：将读到的数据写入a0低八位
