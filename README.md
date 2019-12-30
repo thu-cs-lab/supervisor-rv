@@ -33,7 +33,7 @@ Kernel 使用汇编语言编写，使用到的指令有 20 余条，均符合 RI
 
 目前所有可能出现的开关有：
 
-1. EN_INT： 打开中断和异常支持
+1. EN_INT： 打开中断、异常和用户态支持
 2. EN_PAGING：打开页表支持
 3. EN_FENCEI：如果实现了 L1 Cache 并且分离了 I Cache 和 D Cache 则要开启，在写入代码后执行 FENCE.I 指令
 

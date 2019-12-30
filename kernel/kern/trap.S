@@ -130,12 +130,19 @@ FATAL:                              // 严重问题，重启
     ori a0, zero, 0x80              // 错误信号
     jal WRITE_SERIAL                // 发送
 
+#ifdef ENABLE_INT
     csrrs a0, mepc, zero
     jal WRITE_SERIAL_XLEN
     csrrs a0, mcause, zero
     jal WRITE_SERIAL_XLEN
     csrrs a0, mtval, zero
     jal WRITE_SERIAL_XLEN
+#else
+    mv a0, zero
+    jal WRITE_SERIAL_XLEN
+    jal WRITE_SERIAL_XLEN
+    jal WRITE_SERIAL_XLEN
+#endif
 
     la a0, START                    // 重启地址
     jr a0
