@@ -334,11 +334,23 @@ def run_G(addr):
     outp.write(b'G')
     outp.write(int_to_byte_string(addr))
     class TrapError(Exception):
-        pass
+        def __init__(self, info):
+            self.info = info
+
+    def trap():
+        mepc = int.from_bytes(inp.read(xlen), "little")
+        mcause = int.from_bytes(inp.read(xlen), "little")
+        mtval = int.from_bytes(inp.read(xlen), "little")
+        raise TrapError({
+            "mepc": mepc,
+            "mcause": mcause,
+            "mtval": mtval,
+        });
+
     try:
         ret = inp.read(1)
         if ret == b'\x80':
-            raise TrapError()
+            trap()
         if ret != b'\x06':
             print("start mark should be 0x06")
         time_start = timer()
@@ -347,13 +359,15 @@ def run_G(addr):
             if ret == b'\x07':
                 break
             elif ret == b'\x80':
-                raise TrapError()
+                trap()
             output_binary(ret)
         print('') #just a new line
         elapse = timer() - time_start
         print('elapsed time: %.3fs' % (elapse))
-    except TrapError:
+    except TrapError as e:
         print('supervisor reported an exception during execution')
+        for (k, v) in e.info.items():
+            print(f"  {k}: 0x{v:0{xlen * 2}x}")
 
 
 def MainLoop():
