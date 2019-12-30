@@ -367,7 +367,7 @@ def run_G(addr):
     except TrapError as e:
         print('supervisor reported an exception during execution')
         for (k, v) in e.info.items():
-            print(f"  {k}: 0x{v:0{xlen * 2}x}")
+            print("  {0}: 0x{1:0{2}x}".format(k, v, xlen*2))
 
 
 def MainLoop():
