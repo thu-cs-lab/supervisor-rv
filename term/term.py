@@ -409,6 +409,7 @@ def MainLoop():
                 print("\tA: put assembly at specified address")
                 print("\tU: read data and disassemble")
                 print("\tG: run user code")
+                print("\tT: print page table")
         except ValueError as e:
             print(e)
 
