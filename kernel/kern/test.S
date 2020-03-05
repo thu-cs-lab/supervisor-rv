@@ -117,11 +117,11 @@ UTEST_CRYPTONIGHT:
     sw s0, 0(a2)
 
     // xorshift lfsr
-    srli s1, s0, 7
-    xor s0, s0, s1
-    slli s1, s0, 9
-    xor s0, s0, s1
     slli s1, s0, 13
+    xor s0, s0, s1
+    srli s1, s0, 17
+    xor s0, s0, s1
+    slli s1, s0, 5
     xor s0, s0, s1
 
     addi a2, a2, 4
@@ -139,11 +139,11 @@ UTEST_CRYPTONIGHT:
     xor t0, t0, t1
 
     // get new rand number from xorshift lfsr
-    srli s1, s0, 7
-    xor s0, s0, s1
-    slli s1, s0, 9
-    xor s0, s0, s1
     slli s1, s0, 13
+    xor s0, s0, s1
+    srli s1, s0, 17
+    xor s0, s0, s1
+    slli s1, s0, 5
     xor s0, s0, s1
 
     // calculate a valid addr from new rand number
@@ -155,11 +155,11 @@ UTEST_CRYPTONIGHT:
     mv t1, t0
 
     // get new rand number from xorshift lfsr
-    srli s1, s0, 7
-    xor s0, s0, s1
-    slli s1, s0, 9
-    xor s0, s0, s1
     slli s1, s0, 13
+    xor s0, s0, s1
+    srli s1, s0, 17
+    xor s0, s0, s1
+    slli s1, s0, 5
     xor s0, s0, s1
 
     add a2, a2, 1
