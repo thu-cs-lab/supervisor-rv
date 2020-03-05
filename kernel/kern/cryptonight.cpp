@@ -20,10 +20,11 @@ void bits32() {
   uint32_t last = 0;
   for (int j = 0; j < iter; j++) {
     uint32_t cur = memory[(rand % size) / 4];
+    cur ^= last;
+    rand ^= cur;
     rand ^= rand << 13;
     rand ^= rand >> 17;
     rand ^= rand << 5;
-    cur ^= last;
     memory[(rand % size) / 4] = cur;
     rand ^= rand << 13;
     rand ^= rand >> 17;
@@ -46,17 +47,20 @@ void bits64() {
   uint64_t last = 0;
   for (int j = 0; j < iter; j++) {
     uint64_t cur = memory[(rand % size) / 4];
+    cur ^= last;
+    // RISC-V use sign extension
+    rand ^= (int32_t)cur;
     rand ^= rand << 13;
     rand ^= rand >> 17;
     rand ^= rand << 5;
-    cur ^= last;
     memory[(rand % size) / 4] = cur;
     rand ^= rand << 13;
     rand ^= rand >> 17;
     rand ^= rand << 5;
     last = cur;
   }
-  printf("64bit Result: %016llx\n", last);
+  // RISC-V use sign extension
+  printf("64bit Result: %016llx\n", (uint64_t)(int32_t)last);
 }
 
 int main() {

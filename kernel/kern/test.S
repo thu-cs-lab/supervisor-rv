@@ -137,6 +137,8 @@ UTEST_CRYPTONIGHT:
     lw t0, 0(t0)
     // xor with last iteration's t0
     xor t0, t0, t1
+    // xor rand number with current t0
+    xor s0, s0, t0
 
     // get new rand number from xorshift lfsr
     slli s1, s0, 13
