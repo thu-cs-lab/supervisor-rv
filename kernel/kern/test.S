@@ -103,3 +103,66 @@ UTEST_PUTC:
     ecall
     jr ra
 #endif
+
+UTEST_CRYPTONIGHT:
+    li a0, 0x80400000 // base addr
+    li a1, 0x200000 // 2M bytes
+    li a3, 524288 // number of iterations
+    li a4, 0x1FFFFC // 2M mask
+    add a1, a1, a0 // end addr
+    li s0, 1 // rand number
+
+    mv a2, a0
+.INIT_LOOP:
+    sw s0, 0(a2)
+
+    // xorshift lfsr
+    srli s1, s0, 7
+    xor s0, s0, s1
+    slli s1, s0, 9
+    xor s0, s0, s1
+    slli s1, s0, 13
+    xor s0, s0, s1
+
+    addi a2, a2, 4
+    bne a2, a1, .INIT_LOOP
+
+    li a2, 0
+    li t0, 0
+.MAIN_LOOP:
+    // calculate a valid addr from rand number
+    and t0, s0, a4
+    add t0, a0, t0
+    // read from it
+    lw t0, 0(t0)
+    // xor with last iteration's t0
+    xor t0, t0, t1
+
+    // get new rand number from xorshift lfsr
+    srli s1, s0, 7
+    xor s0, s0, s1
+    slli s1, s0, 9
+    xor s0, s0, s1
+    slli s1, s0, 13
+    xor s0, s0, s1
+
+    // calculate a valid addr from new rand number
+    and t1, s0, a4
+    add t1, a0, t1
+    // write t0 to this addr
+    sw t0, 0(t1)
+    // save t0 for next iteration
+    mv t1, t0
+
+    // get new rand number from xorshift lfsr
+    srli s1, s0, 7
+    xor s0, s0, s1
+    slli s1, s0, 9
+    xor s0, s0, s1
+    slli s1, s0, 13
+    xor s0, s0, s1
+
+    add a2, a2, 1
+    bne a2, a3, .MAIN_LOOP
+
+    jr ra
