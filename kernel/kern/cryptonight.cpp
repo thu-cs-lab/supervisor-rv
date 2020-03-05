@@ -2,12 +2,13 @@
 #include <stdio.h>
 
 const uint32_t size = 0x200000;
+const uint32_t iter = 524288;
+const uint32_t mask = 0x1FFFFC;
+const uint32_t init_rand = 1;
 uint32_t memory[size / sizeof(uint32_t)];
 
-int main() {
-  uint32_t iter = 524288;
-  uint32_t mask = 0x1FFFFC;
-  uint32_t rand = 1;
+void bits32() {
+  uint32_t rand = init_rand;
 
   for (int i = 0; i < size / sizeof(uint32_t); i++) {
     memory[i] = rand;
@@ -29,7 +30,37 @@ int main() {
     rand ^= rand << 5;
     last = cur;
   }
-  printf("Result: %08x\n", last);
+  printf("32bit Result: %08x\n", last);
+}
 
+void bits64() {
+  uint64_t rand = init_rand;
+
+  for (int i = 0; i < size / sizeof(uint32_t); i++) {
+    memory[i] = rand;
+    rand ^= rand << 13;
+    rand ^= rand >> 17;
+    rand ^= rand << 5;
+  }
+
+  uint64_t last = 0;
+  for (int j = 0; j < iter; j++) {
+    uint64_t cur = memory[(rand % size) / 4];
+    rand ^= rand << 13;
+    rand ^= rand >> 17;
+    rand ^= rand << 5;
+    cur ^= last;
+    memory[(rand % size) / 4] = cur;
+    rand ^= rand << 13;
+    rand ^= rand >> 17;
+    rand ^= rand << 5;
+    last = cur;
+  }
+  printf("64bit Result: %016llx\n", last);
+}
+
+int main() {
+  bits32();
+  bits64();
   return 0;
 }
