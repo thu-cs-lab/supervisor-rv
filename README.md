@@ -324,6 +324,52 @@ num: 20
 
 如果是 RV64 ，上面的 `addi` 指令会相应地变成 `addiw` 指令。
 
+## 在 QEMU 里调试监控程序
+
+在 Makefile 中提供了 `debug` 目标，它会编译 kernel 并且运行 QEMU：
+
+```bash
+$ cd kernel
+$ make debug
+qemu-system-riscv32 -M virt -m 32M -kernel kernel.elf -nographic -monitor stdio -serial tcp::6666,server -S -s
+QEMU 5.0.0 monitor - type 'help' for more information
+(qemu) qemu-system-riscv32: -serial tcp::6666,server: info: QEMU waiting for connection on: disconnected:tcp::::6666,server
+```
+
+之后它会在 6666 端口上等待 term 的连接。另起一个窗口，运行 term 连接到 `localhost:6666` ：
+
+```bash
+$ python3 term/term.py -t 127.0.0.1:6666 -c
+connecting to 127.0.0.1:6666...connected
+```
+
+这一步连上以后，就可以用 gdb 挂载到 qemu 里的 kernel 上了。采用比较新的 gdb 或者 SiFive 的 riscv64-elf-unknown-gdb 都是可以的。命令：
+
+```bash
+$ gdb kernel/kernel.elf
+GNU gdb (GDB) 9.2
+Copyright (C) 2020 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-apple-darwin19.4.0".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from kernel/kernel.elf...
+(gdb) target remote localhost:1234
+Remote debugging using localhost:1234
+0x00001000 in ?? ()
+(gdb)
+```
+
+之后就可以正常进行调试。
 
 ## 参考文献
 
