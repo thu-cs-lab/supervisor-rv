@@ -10,7 +10,7 @@ Thinpad 教学计算机搭配了监控程序，能够接受用户命令，支持
 
 ## Kernel
 
-Kernel 使用汇编语言编写，使用到的指令有 20 余条，均符合 RISC-V 规范。Kernel 提供了三种不同的版本，以适应不同的档次的 CPU 实现。它们分别是：第一档为基础版本，直接基本的 I/O 和命令执行功能，不依赖异常、中断、csr等处理器特征，适合于最简单的 CPU 实现；第二档支持中断，使用中断方式完成串口的 I/O 功能，需要处理器实现中断处理机制，及相关的 csr 寄存器；第三档在第二档基础上进一步增加了页表的应用，要求处理器支持基于 Sv32 或者 Sv39 的内存映射，更加接近于操作系统对处理器的需求。
+Kernel 使用汇编语言编写，使用到的指令有 20 余条，均符合 RISC-V 规范。Kernel 提供了三种不同的版本，以适应不同的档次的 CPU 实现。它们分别是：第一档为基础版本，直接基本的 I/O 和命令执行功能，不依赖异常、中断、csr 等处理器特征，适合于最简单的 CPU 实现；第二档支持中断，使用中断方式完成串口的 I/O 功能，需要处理器实现中断处理机制，及相关的 csr 寄存器；第三档在第二档基础上进一步增加了页表的应用，要求处理器支持基于 Sv32 或者 Sv39 的内存映射，更加接近于操作系统对处理器的需求。
 
 为了在硬件上运行 Kernel 程序，我们首先要对 Kernel 的汇编代码进行编译。
 
@@ -69,7 +69,7 @@ SW    iiiiiiiSSSSSsssss010iiiii0100011
 XOR   0000000SSSSSsssss100ddddd0110011
 ```
 
-如果实现的是 RISC-V 64位，则额外需要实现以下指令：
+如果实现的是 RISC-V 64 位，则额外需要实现以下指令：
 
 ```asm
 ADDIW iiiiiiiiiiiisssss000ddddd0011011
@@ -80,7 +80,6 @@ SD    iiiiiiiSSSSSsssss011iiiii0100011
 根据 RISC-V 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
 
 监控程序使用了 8 MB 的内存空间，其中约 1 MB 由 Kernel 使用，剩下的空间留给用户程序。此外，为了支持串口通信，还设置了一个内存以外的地址区域，用于串口收发。具体内存地址的分配方法如下表所示：
-
 
 | 地址区间 | 说明 |
 | --- | --- |
@@ -106,7 +105,7 @@ Kernel 的入口地址为 0x80000000，对应汇编代码 `kern/init.S` 中的 `
 
 ### 进阶一：中断和异常支持
 
-作为扩展功能之一，Kernel 支持中断方式的 I/O ，和 Syscall 功能。要启用这一功能，编译时的命令变为：
+作为扩展功能之一，Kernel 支持中断方式的 I/O，和 Syscall 功能。要启用这一功能，编译时的命令变为：
 
 `make EN_INT=y`
 
@@ -135,13 +134,13 @@ csr 寄存器字段功能定义参见 RISC-V 特权态规范（在参考文献�
 
 监控程序对于异常、中断的使用方式如下：
 
-- 入口函数 EXCEPTION_HANDLER ，根据异常号跳转至相应的异常处理程序。
-- 初始化时设置 mtvec=EXCEPTION_HANDLER ，使用正常中断模式（MODE=DIRECT）。
-- 用户程序在 U-mode 中运行（mret 时 mstatus.MPP=0），通过 ebreak 回到 M-mode ，在异常处理中跳回到 SHELL 。
+- 入口函数 EXCEPTION_HANDLER，根据异常号跳转至相应的异常处理程序。
+- 初始化时设置 mtvec = EXCEPTION_HANDLER，使用正常中断模式（MODE = DIRECT）。
+- 用户程序在 U-mode 中运行（mret 时 mstatus.MPP = 0），通过 ebreak 回到 M-mode ，在异常处理中跳回到 SHELL。
 - 异常帧保存 31 个通用寄存器及 mepc 寄存器。
 - 禁止发生嵌套异常。
 - 支持 SYS_putc 系统调用，调用方法参考 UTEST_PUTC 函数。写串口忙等待，与禁止嵌套异常不冲突。
-- 当发生不能处理的中断时，表示出现严重错误，终止当前任务，自行重启。并且发送错误信号 0x80 提醒 TERM 。
+- 当发生不能处理的中断时，表示出现严重错误，终止当前任务，自行重启。并且发送错误信号 0x80 提醒 TERM。
 
 ### 进阶二：页表支持
 
@@ -155,7 +154,7 @@ CPU 需要额外实现以下指令
 SFENCE.VMA  0001001SSSSSsssss000000001110011
 ```
 
-如果没有实现 TLB ，可以把 SFENCE.VMA 实现为 NOP。
+如果没有实现 TLB，可以把 SFENCE.VMA 实现为 NOP。
 
 此外还需要实现 csr 寄存器：
 
@@ -179,7 +178,7 @@ Sv39 下为了实现的方便，映射的地址比以上的地址区域更大一
 1. 根据 RV32 还是 RV64 选择 Sv32 或者 Sv39 的页表进行填写
 2. 将页表的物理地址写入 satp 并配置好模式，启用 U-mode 下的页表映射机制。
 3. 通过 sfence.vma 指令刷新 TLB。
-4. 将用户栈指针设为 0x80000000 。
+4. 将用户栈指针设为 0x80000000。
 
 ## Term
 
@@ -192,11 +191,11 @@ Term 程序运行在实验者的电脑上，提供监控程序和人交互的界
 - U：从指定地址读取一定长度的数据，并显示反汇编结果。
 - G：执行指定地址的用户程序。
 - T：查看页表内容，仅在启用页表时有效。
-- Q：退出 Term
+- Q：退出 Term。
 
 利用这些命令，实验者可以输入一段汇编程序，检查数据是否正确写入，并让程序在处理器上运行验证。
 
-Term 程序位于 `term` 文件夹中，可执行文件为 `term.py` 。对于本地的 Thinpad，运行程序时用 -s 选项指定串口。例如：
+Term 程序位于 `term` 文件夹中，可执行文件为 `term.py` 。对于本地的 Thinpad，运行程序时用 `-s` 选项指定串口。例如：
 
 `python term.py -s COM3` 或者 `python term.py -s /dev/ttyACM0`（串口名称根据实际情况修改）
 
@@ -212,7 +211,7 @@ Term 程序位于 `term` 文件夹中，可执行文件为 `term.py` 。对于�
 
 来查看测试程序入口地址。记下这些地址，并在 Term 中使用 G 命令运行它们。
 
-其中 CRYPTONIGHT 测试模仿了 CryptoNight 算法，它会进行很多次的随机访存，数据缓存命中率会很低。运行结束后，寄存器 `t0` 保存的是最终结果，32位下应该是 `a2e31a85`，64位下应该是 `ffffffff861c65d4`。
+其中 CRYPTONIGHT 测试模仿了 CryptoNight 算法，它会进行很多次的随机访存，数据缓存命中率会很低。运行结束后，寄存器 `t0` 保存的是最终结果，32位下应该是 `a2e31a85`，64 位下应该是 `ffffffff861c65d4`。
 
 ### 用户程序编写
 
@@ -236,7 +235,7 @@ one instruction per line, empty line to end.
 [0x80100010] addi t0, t0, 1
 [0x80100014] bne a0, t0, loop
 [0x80100018] jr ra
-[0x8010001c] 
+[0x8010001c]
 >> u
 addr: 0x80100000
 num: 32
@@ -287,9 +286,8 @@ R31(t6)    = 0x00000000
 >> q
 ```
 
+当处理器和 Kernel 支持异常功能时（即上文所述 EN_INT=y），用户还可以用 Syscall 的方式打印字符。打印字符的系统调用号为 30。使用时，用户把调用号保存在 s0 寄存器，打印字符参数保存在 a0 寄存器，并执行 syscall 指令，a0 寄存器的低八位将作为字符打印。例如：
 
-当处理器和 Kernel 支持异常功能时（即上文所述 EN_INT=y ），用户还可以用 Syscall 的方式打印字符。打印字符的系统调用号为 30。使用时，用户把调用号保存在 s0 寄存器，打印字符参数保存在 a0 寄存器，并执行 syscall 指令， a0 寄存器的低八位将作为字符打印。例如：
-	
 ```asm
 li s0, 30          # 系统调用号
 li a0, 0x4F         # 'O'
@@ -322,7 +320,7 @@ num: 20
 >>
 ```
 
-如果是 RV64 ，上面的 `addi` 指令会相应地变成 `addiw` 指令。
+如果是 RV64，上面的 `addi` 指令会相应地变成 `addiw` 指令。
 
 ## 在 QEMU 里调试监控程序
 
@@ -373,12 +371,12 @@ Remote debugging using localhost:1234
 
 ## 参考文献
 
-- CPU采用的 RISC-V 指令集标准：The RISC-V Instruction Set Manual Volume I: User-Level ISA Document
+- CPU 采用的 RISC-V 指令集标准：The RISC-V Instruction Set Manual Volume I: User-Level ISA Document
 - RISC-V 中断及 Sv32/Sv39 等特权态资源：The RISC-V Instruction Set Manual Volume II: Privileged Architecture
 
 ## 项目作者
 
 - 初始版本：韦毅龙，李成杰，孟子焯
-- RISC-V版本移植：韩东池，耿威
+- RISC-V 版本移植：韩东池，耿威
 - 后续维护：张宇翔，董豪宇，陈嘉杰
 - 代码贡献：王润基，刘晓义
