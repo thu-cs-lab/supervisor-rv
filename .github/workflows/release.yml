@@ -49,24 +49,21 @@ jobs:
           make BITS=64 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/
           cp kernel/kernel.bin kernel/kernel-rv64-int-paging-fencei.bin
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            kernel/kernel-rv32.bin
+            kernel/kernel-rv32-fencei.bin
+            kernel/kernel-rv32-int.bin
+            kernel/kernel-rv32-int-fencei.bin
+            kernel/kernel-rv32-int-paging.bin
+            kernel/kernel-rv32-int-paging-fencei.bin
+            kernel/kernel-rv64.bin
+            kernel/kernel-rv64-fencei.bin
+            kernel/kernel-rv64-int.bin
+            kernel/kernel-rv64-int-fencei.bin
+            kernel/kernel-rv64-int-paging.bin
+            kernel/kernel-rv64-int-paging-fencei.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: kernel/kernel-rv32.bin
-            asset_name: kernel-rv32.bin
-            asset_content_type: application/octet-stream
