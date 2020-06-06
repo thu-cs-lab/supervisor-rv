@@ -98,6 +98,7 @@ bss_init_done:
     la t1, uregs_fp
     STORE t0, 0(t1)
 
+#ifdef ENABLE_UART16550
     /* init serial */
     /* see ucore/kern/driver/console.c */
     li t0, COM1               // all COM_* shares the same %hi
@@ -113,6 +114,7 @@ bss_init_done:
     sb x0, %lo(COM_MCR_OFFSET)(t0)  // :65
     li t1, COM_IER_RDI
     sb t1, %lo(COM_IER_OFFSET)(t0)  // :67
+#endif
 
     ori t0, zero, TF_SIZE / 4       // 计数器
 .LC0:

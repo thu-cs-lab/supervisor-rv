@@ -40,7 +40,12 @@ ifeq ($(EN_FENCEI), y)
 	ASFLAGS += -DENABLE_FENCEI
 endif
 
-CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)_$(EN_FENCEI)
+override EN_UART16550 ?= y
+ifeq ($(EN_UART16550), y)
+	ASFLAGS += -DENABLE_UART16550
+endif
+
+CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)_$(EN_FENCEI)_$(EN_UART16550)
 
 .PHONY: all clean show-utest sim debug inst
 
