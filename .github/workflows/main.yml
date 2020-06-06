@@ -41,11 +41,3 @@ jobs:
           make BITS=64 EN_INT=y EN_FENCEI=y -C kernel/
           make BITS=64 EN_INT=y EN_PAGING=y -C kernel/
           make BITS=64 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/
-
-      - name: Testing
-        run: |
-          export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
-          export PATH=$PATH:$PWD/qemu-4.1.0/riscv32-softmmu:$PWD/qemu-4.1.0/riscv64-softmmu:$PWD/qemu-4.1.0;
-          make BITS=32 sim -C kernel &
-          ./.test-script
-          killall qemu-system-riscv32
