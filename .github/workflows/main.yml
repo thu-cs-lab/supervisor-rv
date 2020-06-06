@@ -14,6 +14,9 @@ jobs:
           curl https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz > toolchain.tar.gz
           tar -xf toolchain.tar.gz
 
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Build binaries
         run: |
           export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
