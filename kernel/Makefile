@@ -14,7 +14,7 @@ SRC	:= $(foreach sdir, $(SRCDIR), $(wildcard $(sdir)/*.S))
 HEADER	:= $(foreach sdir, $(INCLUDE), $(wildcard $(sdir)/*.h))
 OBJ	:= $(patsubst $(SRCDIR)/%.S, $(OBJDIR)/%.o, $(SRC))
 TARGET	:= kernel.elf
-ASFLAGS	:= -D__ASSEMBLY__ -g
+ASFLAGS	:= -D__ASSEMBLY__ -g -fno-pic
 ifeq ($(BITS), 32)
 	ASFLAGS += -march=rv32i -mabi=ilp32 -DRV32
 	QEMU := qemu-system-riscv32
