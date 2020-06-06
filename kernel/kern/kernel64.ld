@@ -14,9 +14,6 @@ SECTIONS
         . = ALIGN(4);
         _ebss = .;         /* define a global symbol at bss end */
     }
-    .rodata : {
-        *(.rodata)
-    }
     PROVIDE(uregs_sp = uregs + (2 - 1) * 8);
     PROVIDE(uregs_fp = uregs + (8 - 1) * 8);
     . = 0x80000000;
@@ -25,5 +22,8 @@ SECTIONS
         *(.text)
         . = ALIGN(0x1000); /* "fixed" utest address */
         *(.text.utest)
+    }
+    .rodata : {
+        *(.rodata)
     }
 }
