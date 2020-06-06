@@ -53,3 +53,9 @@ jobs:
           cp kernel/kernel.bin kernel/kernel64-int-paging.bin
           make BITS=64 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/
           cp kernel/kernel.bin kernel/kernel64-int-paging-fencei.bin
+
+      - name: Testing
+        run: |
+          make BITS=32 sim -C kernel & || true
+          ./.test-script
+          killall qemu-system-riscv32
