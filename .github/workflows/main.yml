@@ -1,0 +1,21 @@
+name: main
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup dependencies
+        run: |
+          sudo apt install -y expect python3-pip qemu-system
+          sudo pip3 install pyserial
+          curl https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz > toolchain.tar.gz
+          tar -xf toolchain.tar.gz
+
+      - name: Build binaries
+        run: |
+          export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
+          make BITS=32 -C kernel/
+          cp kernel/kernel.bin kernel/kernel32.bin
