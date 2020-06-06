@@ -114,14 +114,6 @@ bss_init_done:
     li t1, COM_IER_RDI
     sb t1, %lo(COM_IER_OFFSET)(t0)  // :67
 
-
-//#ifdef ENABLE_INT
-//    /* enable serial interrupt */
-//    mfc0 t0, CP0_STATUS
-//    ori t0, t0, STATUSF_IP4         // hardware interrupt source #2, irq #4
-//    mtc0 t0, CP0_STATUS
-//#endif
-
     ori t0, zero, TF_SIZE / 4       // 计数器
 .LC0:
     addi t0, t0, -1                // 滚动计数器
@@ -130,18 +122,7 @@ bss_init_done:
     bne t0, zero, .LC0              // 初始化循环
     la t0, TCBT           // 载入TCBT地址
     STORE sp, 0(t0)                    // thread0(idle)的中断帧地址设置
-/*
-#ifdef ENABLE_INT
-    mfc0 t1, CP0_STATUS             // 取STATUS
-    mfc0 t2, CP0_CAUSE              // 取CAUSE
-    ori t1, t1, ST0_IE              // 使能中断
-    sw t2, TF_CAUSE(sp)             // 写中断帧CAUSE
-    sw t1, TF_STATUS(sp)            // 写中断帧STATUS; idle线程打开串口硬件中断响应
-    lui t3, %hi(IDLELOOP)
-    addiu t3, %lo(IDLELOOP)       // 取得idle线程入口
-    sw t3, TF_EPC(sp)               // 写中断帧EPC
-#endif
-*/
+
     or t6, sp, zero                 // t6保存idle中断帧位置
 
     ori t0, zero, TF_SIZE / XLEN     // 计数器
