@@ -1,0 +1,43 @@
+name: main
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup dependencies
+        run: |
+          sudo apt install -y expect python3-pip
+          sudo pip3 install pyserial
+          curl https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz > toolchain.tar.gz
+          tar -xf toolchain.tar.gz
+
+      - name: Setup QEMU
+        run: |
+          wget https://download.qemu.org/qemu-4.1.0.tar.xz
+          tar xJf qemu-4.1.0.tar.xz > /dev/null
+          cd qemu-4.1.0
+          ./configure --target-list="riscv32-softmmu riscv64-softmmu"
+          make
+
+      - name: Build binaries
+        run: |
+          export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
+          export PATH=$PATH:$PWD/qemu-4.1.0/riscv32-softmmu:$PWD/qemu-4.1.0/riscv64-softmmu:$PWD/qemu-4.1.0;
+          make BITS=32 -C kernel/
+          make BITS=32 EN_FENCEI=y -C kernel/
+          make BITS=32 EN_INT=y -C kernel/
+          make BITS=32 EN_INT=y EN_FENCEI=y -C kernel/
+          make BITS=32 EN_INT=y EN_PAGING=y -C kernel/
+          make BITS=32 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/
+          make BITS=64 -C kernel/
+          make BITS=64 EN_FENCEI=y -C kernel/
+          make BITS=64 EN_INT=y -C kernel/
+          make BITS=64 EN_INT=y EN_FENCEI=y -C kernel/
+          make BITS=64 EN_INT=y EN_PAGING=y -C kernel/
+          make BITS=64 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/

@@ -1,0 +1,69 @@
+
+name: release
+on:
+  push:
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup dependencies
+        run: |
+          sudo apt install -y expect python3-pip
+          sudo pip3 install pyserial
+          curl https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14.tar.gz > toolchain.tar.gz
+          tar -xf toolchain.tar.gz
+
+      - name: Build binaries
+        run: |
+          export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
+          make BITS=32 -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv32.bin
+          make BITS=32 EN_FENCEI=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv32-fencei.bin
+          make BITS=32 EN_INT=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv32-int.bin
+          make BITS=32 EN_INT=y EN_FENCEI=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv32-int-fencei.bin
+          make BITS=32 EN_INT=y EN_PAGING=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv32-int-paging.bin
+          make BITS=32 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv32-int-paging-fencei.bin
+          make BITS=64 -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv64.bin
+          make BITS=64 EN_FENCEI=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv64-fencei.bin
+          make BITS=64 EN_INT=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv64-int.bin
+          make BITS=64 EN_INT=y EN_FENCEI=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv64-int-fencei.bin
+          make BITS=64 EN_INT=y EN_PAGING=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv64-int-paging.bin
+          make BITS=64 EN_INT=y EN_PAGING=y EN_FENCEI=y -C kernel/
+          cp kernel/kernel.bin kernel/kernel-rv64-int-paging-fencei.bin
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            kernel/kernel-rv32.bin
+            kernel/kernel-rv32-fencei.bin
+            kernel/kernel-rv32-int.bin
+            kernel/kernel-rv32-int-fencei.bin
+            kernel/kernel-rv32-int-paging.bin
+            kernel/kernel-rv32-int-paging-fencei.bin
+            kernel/kernel-rv64.bin
+            kernel/kernel-rv64-fencei.bin
+            kernel/kernel-rv64-int.bin
+            kernel/kernel-rv64-int-fencei.bin
+            kernel/kernel-rv64-int-paging.bin
+            kernel/kernel-rv64-int-paging-fencei.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
