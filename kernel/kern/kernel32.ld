@@ -14,15 +14,13 @@ SECTIONS
         . = ALIGN(4);
         _ebss = .;         /* define a global symbol at bss end */
     }
-    .rodata : {
-        *(.rodata)
-    }
     PROVIDE(uregs_sp = uregs + (2 - 1) * 4);
     PROVIDE(uregs_fp = uregs + (8 - 1) * 4);
     . = 0x80000000;
     .text : {
         KEEP (*(.text.init))
         *(.text)
+        *(.rodata)
         . = ALIGN(0x1000); /* "fixed" utest address */
         *(.text.utest)
     }
