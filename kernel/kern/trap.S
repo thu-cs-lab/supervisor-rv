@@ -120,6 +120,14 @@ CONTEXT_SWITCH:
 
     mret
 
+    // 用于仅支持 VECTORED 的 CPU
+    .balign 256
+    .global VECTORED_EXCEPTION_HANDLER
+VECTORED_EXCEPTION_HANDLER:
+    .rept 64
+    j EXCEPTION_HANDLER
+    .endr
+
 #else
 HALT:
 EXCEPTION_HANDLER:
