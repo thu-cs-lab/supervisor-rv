@@ -77,6 +77,7 @@ monitor_version:
 
     .global START
 START:
+    // 清空 BSS
     la s10, _sbss
     la s11, _ebss
 bss_init:
@@ -87,7 +88,8 @@ bss_init:
 
 bss_init_done:
 #ifdef ENABLE_INT
-    la s0, EXCEPTION_HANDLER        // 设定异常相应地址
+    // 设置异常处理地址寄存器 mtvec
+    la s0, EXCEPTION_HANDLER
     csrw mtvec, s0
     
     // 判断是否设置成功（mtvec 是 WARL）
@@ -104,15 +106,16 @@ mtvec_done:
     la sp, KERNEL_STACK_INIT         // 设置内核栈
     or s0, sp, zero
     li t0, USER_STACK_INIT          // 设置用户栈
+    // 设置用户态程序的 sp(x2) 和 fp(x8) 寄存器
     la t1, uregs_sp
-    STORE t0, 0(t1)                 // 写入用户空间备份
+    STORE t0, 0(t1)
     la t1, uregs_fp
     STORE t0, 0(t1)
 
 #ifdef ENABLE_UART16550
-    /* init serial */
-    /* see ucore/kern/driver/console.c */
-    li t0, COM1               // all COM_* shares the same %hi
+    // 配置串口，见 serial.h 中的叙述进行配置
+    // 参考 ucore/kern/driver/console.c
+    li t0, COM1
     li t1, COM_FCR_CONFIG           // console.c:54
     sb t1, %lo(COM_FCR_OFFSET)(t0)  // :57
     li t1, COM_LCR_DLAB
@@ -127,23 +130,26 @@ mtvec_done:
     sb t1, %lo(COM_IER_OFFSET)(t0)  // :67
 #endif
 
-    ori t0, zero, TF_SIZE / 4       // 计数器
+    // 清空并留出空间用于存储中断帧
+    li t0, TF_SIZE
 .LC0:
-    addi t0, t0, -1                // 滚动计数器
-    addi sp, sp, -XLEN                // 移动栈指针
-    STORE zero, 0(sp)                  // 初始化栈空间
-    bne t0, zero, .LC0              // 初始化循环
-    la t0, TCBT           // 载入TCBT地址
-    STORE sp, 0(t0)                    // thread0(idle)的中断帧地址设置
+    addi t0, t0, -XLEN
+    addi sp, sp, -XLEN
+    STORE zero, 0(sp)
+    bne t0, zero, .LC0
 
-    or t6, sp, zero                 // t6保存idle中断帧位置
+    la t0, TCBT               // 载入TCBT地址
+    STORE sp, 0(t0)           // thread0(idle)的中断帧地址设置
 
-    ori t0, zero, TF_SIZE / XLEN     // 计数器
+    mv t6, sp                 // t6保存idle中断帧位置
+
+    li t0, TF_SIZE
 .LC1:
-    addi t0, t0, -1                // 滚动计数器
+    addi t0, t0, -XLEN              // 滚动计数器
     addi sp, sp, -XLEN              // 移动栈指针
-    STORE zero, 0(sp)                  // 初始化栈空间
+    STORE zero, 0(sp)               // 初始化栈空间
     bne t0, zero, .LC1              // 初始化循环
+
     la t0, TCBT                     // 载入TCBT地址
     STORE sp, XLEN(t0)                    // thread1(shell/user)的中断帧地址设置
     STORE sp, TF_sp(t6)                // 设置idle线程栈指针(调试用?)
@@ -318,17 +324,6 @@ mtvec_done:
     csrw satp, t0
     sfence.vma
 #endif
-/*
-#ifdef ENABLE_INT
-    mfc0 t0, CP0_STATUS             // 取得cp0的status Reg
-    nop
-    ori t0, t0, ST0_IE              // status Reg 的IE位置一
-    xori t1, t0, STATUSF_IP4
-    and t0, t0, t1                  // 主线程屏蔽串口硬件中断
-    mtc0 t0, CP0_STATUS             // 启动完成，恢复中断机制
-    nop
-#endif
-*/
 
     j WELCOME                       // 进入主线程
 
