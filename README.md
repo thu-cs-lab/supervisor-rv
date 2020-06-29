@@ -136,7 +136,7 @@ csr 寄存器字段功能定义参见 RISC-V 特权态规范（在参考文献�
 监控程序对于异常、中断的使用方式如下：
 
 - 入口函数 EXCEPTION_HANDLER，根据异常号跳转至相应的异常处理程序。
-- 初始化时设置 mtvec = EXCEPTION_HANDLER，使用正常中断模式（MODE = DIRECT）。
+- 初始化时设置 mtvec = EXCEPTION_HANDLER，使用正常中断模式（MODE = DIRECT）；如果不支持 MODE = DIRECT（利用 mtvec 的 WARL 判断），则会使用向量中断模式（MODE = VECTORED）。
 - 用户程序在 U-mode 中运行（mret 时 mstatus.MPP = 0），通过 ebreak 回到 M-mode ，在异常处理中跳回到 SHELL。
 - 异常帧保存 31 个通用寄存器及 mepc 寄存器。
 - 禁止发生嵌套异常。

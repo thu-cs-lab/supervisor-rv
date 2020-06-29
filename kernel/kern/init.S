@@ -89,7 +89,18 @@ bss_init_done:
 #ifdef ENABLE_INT
     la s0, EXCEPTION_HANDLER        // 设定异常相应地址
     csrw mtvec, s0
+    
+    // 判断是否设置成功（mtvec 是 WARL）
+    csrr t0, mtvec
+    beq t0, s0, mtvec_done
+    
+    // 不成功，尝试 MODE=VECTORED
+    la s0, VECTORED_EXCEPTION_HANDLER
+    ori s0, s0, 1
+    csrw mtvec, s0
+mtvec_done:
 #endif
+
     la sp, KERNEL_STACK_INIT         // 设置内核栈
     or s0, sp, zero
     li t0, USER_STACK_INIT          // 设置用户栈
