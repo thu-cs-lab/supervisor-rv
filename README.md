@@ -78,6 +78,21 @@ LD    iiiiiiiiiiiisssss011ddddd0000011
 SD    iiiiiiiSSSSSsssss011iiiii0100011
 ```
 
+在以上指令里面，很多指令的功能是相近的，分类以后，实际上只需要实现如下的几种指令，然后很容易就可以扩展到其它指令：
+
+```
+ADD: ADDI, AND, ANDI, OR, ORI, SLLI, SRLI, XOR, ADDIW
+AUIPC:
+BEQ: BNE
+JAL:
+JALR:
+LB: LW，LD
+LUI:
+SB: SW，SD
+```
+
+所以，实际上只需要实现上面的八条指令，简单扩展即可实现需要的所有指令。
+
 根据 RISC-V 规范（在参考文献中）正确实现这些指令后，程序才能正常工作。
 
 监控程序使用了 8 MB 的内存空间，其中约 1 MB 由 Kernel 使用，剩下的空间留给用户程序。此外，为了支持串口通信，还设置了一个内存以外的地址区域，用于串口收发。具体内存地址的分配方法如下表所示：
