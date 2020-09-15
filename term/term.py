@@ -260,7 +260,7 @@ def run_F(addr, file_name):
     print("reading from file %s" % file_name)
     offset = addr & 0xfffffff
     prompt_addr = addr
-    asm = ".set noreorder\n.set noat\n.org {:#x}\n".format(offset)
+    asm = ".org {:#x}\n".format(offset)
     with open(file_name, "r") as f:
         for line in f:
             print('[0x%04x] %s' % (prompt_addr, line.strip()))
