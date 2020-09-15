@@ -273,7 +273,7 @@ def run_F(addr, file_name):
             try:
                 asm += ".word {:#x}\n".format(int(line, 16))
             except ValueError:
-                instr = multi_line_asm(".set noat\n" + line)
+                instr = multi_line_asm(line)
                 if instr == '':
                     continue
                 asm += line + "\n"
