@@ -76,10 +76,10 @@ show-utest: $(TARGET)
 	@$(GCCPREFIX)objdump -D $< | grep "^[0-9a-f]\{8,16\} <UTEST_" | grep -n --color=auto 'UTEST_'
 
 sim: checkdirs $(TARGET)
-	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor none -serial tcp::6666,server -s
+	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor none -serial tcp::6666,server -s -bios none
 
 debug: checkdirs $(TARGET)
-	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor stdio -serial tcp::6666,server -S -s
+	$(QEMU) -M virt -m 32M -kernel $(TARGET) -nographic -monitor stdio -serial tcp::6666,server -S -s -bios none
 
 inst: checkdirs $(TARGET)
 	@$(GCCPREFIX)objdump -d $(TARGET) -M no-aliases | awk '{print $$3}' | sort | uniq | grep -v section | grep -v format
