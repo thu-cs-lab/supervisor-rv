@@ -55,7 +55,7 @@ $(CONFIG_FILE):
 	@rm -f .config_*
 	touch $@
 
-$(TARGET): $(OBJ) $(LDSCRIPT)
+$(TARGET): checkdirs $(OBJ) $(LDSCRIPT)
 	$(LD) $(OBJ) -T$(LDSCRIPT)
 
 checkdirs: $(OBJDIR)
