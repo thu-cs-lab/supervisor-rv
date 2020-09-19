@@ -242,7 +242,7 @@ def run_A(addr):
             asm += ".word {:#x}\n".format(int(line, 16))
         except ValueError:
             # instruction text, check validity
-            if multi_line_asm(line) == None:
+            if multi_line_asm(line) is None:
                 # error occurred when running assembler, skip this line
                 continue
             asm += line + "\n"
@@ -278,7 +278,7 @@ def run_F(addr, file_name):
                 asm += ".word {:#x}\n".format(int(line, 16))
             except ValueError:
                 # instruction text, check validity
-                if multi_line_asm(line) == None:
+                if multi_line_asm(line) is None:
                     # error occurred when running assembler, skip this line
                     continue
                 asm += line + "\n"
