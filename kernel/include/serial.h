@@ -8,6 +8,7 @@
 // For QEMU, use 1
 #define COM_MULTIPLY        1
 
+// ref: https://www.lammertbies.nl/comm/info/serial-uart
 #define COM_RBR_OFFSET      (0 * COM_MULTIPLY)   /* In:  Recieve Buffer Register */
 #define COM_THR_OFFSET      (0 * COM_MULTIPLY)   /* Out: Transmitter Holding Register */
 #define COM_DLL_OFFSET      (0 * COM_MULTIPLY)   /* Out: Divisor Latch Low */
