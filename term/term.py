@@ -105,7 +105,8 @@ def multi_line_asm(instr):
         if os.path.exists(tmp_obj.name):
             os.remove(tmp_obj.name)
         os.remove(tmp_binary.name)
-    return ''
+    # can only reach here when assembler fails
+    return None
 
 # invoke objdump to disassemble single instruction
 # accepts encoded instruction (exactly 4 bytes), from least significant byte
@@ -232,15 +233,17 @@ def run_A(addr):
         line = raw_input('[0x%04x] ' % prompt_addr).strip()
         if line == '':
             break
-        elif re.match("\\w+:$", line) is not None:
-            # ASM label only
+        elif re.match("^.+:$", line) is not None:
+            # ASM label only, not incrementing addr
             asm += line + "\n"
             continue
         try:
+            # directly add hex to assembly lines
             asm += ".word {:#x}\n".format(int(line, 16))
         except ValueError:
-            instr = multi_line_asm(line)
-            if instr == '':
+            # instruction text, check validity
+            if multi_line_asm(line) == None:
+                # error occurred when running assembler, skip this line
                 continue
             asm += line + "\n"
         prompt_addr = addr + len(multi_line_asm(asm)) - offset
@@ -266,15 +269,17 @@ def run_F(addr, file_name):
             print('[0x%04x] %s' % (prompt_addr, line.strip()))
             if line == '':
                 break
-            elif re.match("\\w+:$", line) is not None:
-                # ASM label only
+            elif re.match("^.+:$", line) is not None:
+                # ASM label only, not incrementing addr
                 asm += line + "\n"
                 continue
             try:
+                # directly add hex to assembly lines
                 asm += ".word {:#x}\n".format(int(line, 16))
             except ValueError:
-                instr = multi_line_asm(line)
-                if instr == '':
+                # instruction text, check validity
+                if multi_line_asm(line) == None:
+                    # error occurred when running assembler, skip this line
                     continue
                 asm += line + "\n"
             prompt_addr = addr + len(multi_line_asm(asm)) - offset
@@ -518,6 +523,10 @@ def InitializeTCP(host_port):
 
 if __name__ == "__main__":
     # para = '127.0.0.1:6666' if len(sys.argv) != 2 else sys.argv[1]
+
+    if sys.version_info[0] != 3:
+        print("You MUST use Python3 to run terminal.")
+        exit(1)
 
     parser = argparse.ArgumentParser(description = 'Term for rv32/64 expirence.')
     parser.add_argument('-c', '--continued', action='store_true', help='Term will not wait for welcome if this flag is set')
