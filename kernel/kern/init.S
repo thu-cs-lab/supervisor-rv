@@ -114,20 +114,24 @@ mtvec_done:
 
 #ifdef ENABLE_UART16550
     // 配置串口，见 serial.h 中的叙述进行配置
-    // 参考 ucore/kern/driver/console.c
     li t0, COM1
-    li t1, COM_FCR_CONFIG           // console.c:54
-    sb t1, %lo(COM_FCR_OFFSET)(t0)  // :57
+    // 打开 FIFO，并且清空 FIFO
+    li t1, COM_FCR_CONFIG 
+    sb t1, %lo(COM_FCR_OFFSET)(t0)
+    // 打开 DLAB
     li t1, COM_LCR_DLAB
-    sb t1, %lo(COM_LCR_OFFSET)(t0)  // :57
+    sb t1, %lo(COM_LCR_OFFSET)(t0)
+    // 设置 Baudrate
     li t1, COM_DLL_VAL
-    sb t1, %lo(COM_DLL_OFFSET)(t0)  // :58
-    sb x0, %lo(COM_DLM_OFFSET)(t0)  // :59
+    sb t1, %lo(COM_DLL_OFFSET)(t0)
+    sb x0, %lo(COM_DLM_OFFSET)(t0)
+    // 关闭 DLAB，打开 WLEN8
     li t1, COM_LCR_CONFIG
-    sb t1, %lo(COM_LCR_OFFSET)(t0)  // :62
-    sb x0, %lo(COM_MCR_OFFSET)(t0)  // :65
+    sb t1, %lo(COM_LCR_OFFSET)(t0)
+    sb x0, %lo(COM_MCR_OFFSET)(t0)
+    // 开串口中断
     li t1, COM_IER_RDI
-    sb t1, %lo(COM_IER_OFFSET)(t0)  // :67
+    sb t1, %lo(COM_IER_OFFSET)(t0)
 #endif
 
     // 清空并留出空间用于存储中断帧
