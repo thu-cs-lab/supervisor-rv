@@ -24,7 +24,6 @@
 #define COM_LSR_OFFSET (5 * COM_MULTIPLY)  /* In:  Line Status Register */
 #define COM_MSR_OFFSET (6 * COM_MULTIPLY)  /* In:  Modem Status Register */
 #define COM_SCR_OFFSET (7 * COM_MULTIPLY)  /* I/O: Scratch Register */
-#define COM_MDR1_OFFSET (8 * COM_MULTIPLY) /* I/O:  Mode Register */
 
 // LSR 寄存器的定义
 #define COM_LSR_FIFOE 0x80          /* Fifo error */
