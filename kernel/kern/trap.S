@@ -10,7 +10,6 @@ EXCEPTION_HANDLER:
 
     STORE ra, TF_ra(sp)
     csrrw ra, mscratch, sp          // 读出原来的 sp
-    mv ra, sp
     STORE ra, TF_sp(sp)
     STORE gp, TF_gp(sp)
     STORE tp, TF_tp(sp)
