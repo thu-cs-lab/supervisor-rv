@@ -67,7 +67,7 @@ $(OBJ): $(OBJDIR)/%.o : $(SRCDIR)/%.S $(CONFIG_FILE) $(HEADER)
 	$(CC) -o $@ $< -c -I$(INCLUDE) $(ASFLAGS)
 
 kernel.bin: $(TARGET)
-	@$(GCCPREFIX)objcopy -j .text -j .text.* -j .rodata -O binary -v $< $@
+	@$(GCCPREFIX)objcopy -j .text -j .text.* -j .rodata -j .data -O binary -v $< $@
 
 kernel.asm: $(TARGET)
 	@$(GCCPREFIX)objdump -d -S $< > $@

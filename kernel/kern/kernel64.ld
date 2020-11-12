@@ -26,4 +26,7 @@ SECTIONS
     .rodata : {
         *(.rodata)
     }
+    .data : {
+        *(.data)
+    }
 }
