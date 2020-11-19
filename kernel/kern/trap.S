@@ -44,6 +44,8 @@ EXCEPTION_HANDLER:
     STORE t0, TF_epc(sp)
 
     csrr t0, mcause
+    li t1, EX_INT_FLAG | EX_INT_MODE_MACHINE | EX_INT_TYPE_TIMER
+    beq t1, t0, .HANDLE_MTIMER
     li t1, EX_INT_FLAG
     and t1, t0, t1
     bne t1, zero, .HANDLE_INT
@@ -78,6 +80,33 @@ EXCEPTION_HANDLER:
     // 暂未实现
     j FATAL
 
+.HANDLE_MTIMER:
+    // 设置下次时钟中断时间
+#ifdef RV64
+    li t0, CLINT_MTIME
+    ld t1, 0(t0)        // 读取 mtime
+    li t3, 1000000
+    add t3, t1, t3      // + 1000000
+    li t0, CLINT_MTIMECMP
+    sd t3, 0(t0)        // 写入 mtimecmp
+#else
+    li t0, CLINT_MTIME
+    lw t1, 0(t0)        // 读取 mtime 低 32 位
+    lw t2, 4(t0)        // 读取 mtime 高 32 位
+    li t3, 1000000
+    add t3, t1, t3      // 低 32 位 + 1000000
+    sltu t1, t3, t1     // 生成进位，若进位 t1 = 1
+    add t2, t2, t1      // 高 32 位进位
+    li t0, CLINT_MTIMECMP
+    sw t2, 4(t0)        // 写入 mtimecmp 高 32 位
+    sw t3, 0(t0)        // 写入 mtimecmp 低 32 位
+#endif
+
+    // 加入以下代码，测试时钟中断
+    // li a0, 'g'
+    // jal WRITE_SERIAL
+
+    j CONTEXT_SWITCH
 
 CONTEXT_SWITCH:
     LOAD t0, TF_epc(sp)
