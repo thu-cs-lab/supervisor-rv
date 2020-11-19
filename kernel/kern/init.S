@@ -341,13 +341,8 @@ mtvec_done:
     j WELCOME                       // 进入主线程
 
 WELCOME:
-    la s1, monitor_version          // 装入启动信息
-    lb a0, 0(s1)
-.Loop0:
-    addi s1, s1, 0x1
-    jal WRITE_SERIAL                // 调用串口写函数
-    lb a0, 0(s1)
-    bne a0, zero, .Loop0            // 打印循环至0结束符
+    la a0, monitor_version          // 装入启动信息
+    jal WRITE_SERIAL_STRING
 
     j SHELL                         // 开始交互
 
