@@ -145,8 +145,10 @@ MRET   00110000001000000000000001110011
 3. mepc
 4. mcause: Interrupt, Exception Code
 5. mstatus: MPP
+6. mie
+7. mip
 
-csr 寄存器字段功能定义参见 RISC-V 特权态规范（在参考文献中）。
+CSR 寄存器字段功能定义参见 RISC-V 特权态规范（在参考文献中）。
 
 监控程序对于异常、中断的使用方式如下：
 
@@ -157,6 +159,17 @@ csr 寄存器字段功能定义参见 RISC-V 特权态规范（在参考文献�
 - 禁止发生嵌套异常。
 - 支持 SYS_putc 系统调用，调用方法参考 UTEST_PUTC 函数。写串口忙等待，与禁止嵌套异常不冲突。
 - 当发生不能处理的中断时，表示出现严重错误，终止当前任务，自行重启。并且发送错误信号 0x80 提醒 TERM。
+
+为了支持时钟中断，还需要实现 CLINT 设备的两个 MMIO 寄存器：
+
+| 地址 | 说明 |
+| --- | --- |
+| 0x200BFF8 | mtime，64位，可读写。表示当前时间 |
+| 0x2004000 | mtimecmp，64位，可读写。表示下次时钟中断时间 |
+
+CPU 需要每隔固定时间将 mtime 的值 +1，并且当 `mtime >= mtimecmp` 时产生时钟事件，将 MTIP 置 1。当 MTIP, MTIE, MIE 同时为 1 时，CPU 即触发时钟中断。
+
+具体参见 RISC-V 特权态手册 *3.1.10 Machine Timer Registers (mtime and mtimecmp)*。
 
 ### 进阶二：页表支持
 
