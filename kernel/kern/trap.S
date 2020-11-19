@@ -45,7 +45,7 @@ EXCEPTION_HANDLER:
 
     csrr t0, mcause
     li t1, EX_INT_FLAG | EX_INT_MODE_MACHINE | EX_INT_TYPE_TIMER
-    beq t1, t0, .HANDLE_MTIMER
+    beq t1, t0, .HANDLE_TIMER
     li t1, EX_INT_FLAG
     and t1, t0, t1
     bne t1, zero, .HANDLE_INT
@@ -80,33 +80,12 @@ EXCEPTION_HANDLER:
     // 暂未实现
     j FATAL
 
-.HANDLE_MTIMER:
-    // 设置下次时钟中断时间
-#ifdef RV64
-    li t0, CLINT_MTIME
-    ld t1, 0(t0)        // 读取 mtime
-    li t3, 1000000
-    add t3, t1, t3      // + 1000000
-    li t0, CLINT_MTIMECMP
-    sd t3, 0(t0)        // 写入 mtimecmp
-#else
-    li t0, CLINT_MTIME
-    lw t1, 0(t0)        // 读取 mtime 低 32 位
-    lw t2, 4(t0)        // 读取 mtime 高 32 位
-    li t3, 1000000
-    add t3, t1, t3      // 低 32 位 + 1000000
-    sltu t1, t3, t1     // 生成进位，若进位 t1 = 1
-    add t2, t2, t1      // 高 32 位进位
-    li t0, CLINT_MTIMECMP
-    sw t2, 4(t0)        // 写入 mtimecmp 高 32 位
-    sw t3, 0(t0)        // 写入 mtimecmp 低 32 位
-#endif
-
-    // 加入以下代码，测试时钟中断
-    // li a0, 'g'
-    // jal WRITE_SERIAL
-
-    j CONTEXT_SWITCH
+.HANDLE_TIMER:
+    csrr t0, mstatus
+    li t1, MSTATUS_MPP_MASK
+    and t0, t0, t1                  // 读取 mstatus.MPP
+    bne t0, zero, CONTEXT_SWITCH    // 来自 M 态的中断，直接返回
+    j USERRET_TIMEOUT               // 处理用户程序超时
 
 CONTEXT_SWITCH:
     LOAD t0, TF_epc(sp)
@@ -163,7 +142,7 @@ EXCEPTION_HANDLER:
 #endif
 
 FATAL:                              // 严重问题，重启
-    ori a0, zero, 0x80              // 错误信号
+    li a0, SIG_FATAL                // 错误信号
     jal WRITE_SERIAL                // 发送
 
 #ifdef ENABLE_INT

@@ -11,13 +11,16 @@
 #define XLEN 8
 #endif
 
-#define TIMERSET    0x06            // ascii (ACK) 启动计时
-#define TIMETOKEN   0x07            // ascii (BEL) 停止计时
+#define SIG_TIMERSET    0x06        // ascii (ACK) 启动计时
+#define SIG_TIMETOKEN   0x07        // ascii (BEL) 停止计时
+#define SIG_FATAL       0x80        // 严重错误
+#define SIG_TIMEOUT     0x81        // 超时
 
 #define SYS_exit 1
 #define SYS_putc 30
 
 #define MSTATUS_MIE (1 << 3)
+#define MSTATUS_MPIE (1 << 7)
 #define MSTATUS_MPP_MASK 0x1800
 
 #define MIE_MTIE (1 << 7)

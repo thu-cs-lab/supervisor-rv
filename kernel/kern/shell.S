@@ -134,13 +134,37 @@ SHELL:
     jal READ_SERIAL_XLEN            // 获取addr
     mv s10, a0                      // 保存到 s10
 
-    ori a0, zero, TIMERSET          // 写TIMERSET(0x06)信号
-    jal WRITE_SERIAL                 // 告诉终端用户程序开始运行
+    li a0, SIG_TIMERSET             // 写开始计时信号
+    jal WRITE_SERIAL                // 告诉终端用户程序开始运行
 
 #ifdef ENABLE_INT
-    csrw mepc, s10                // 用户程序入口写入EPC
+    csrw mepc, s10                  // 用户程序入口写入EPC
     li a0, MSTATUS_MPP_MASK
-    csrc mstatus, a0     // 设置 MPP=0 ，对应 U-mode
+    csrc mstatus, a0                // 设置 MPP=0，对应 U-mode
+    li a0, MSTATUS_MPIE
+    csrs mstatus, a0                // 设置 MPIE=1，进入用户态后打开中断
+
+    // 设置时钟中断，用于检测运行超时
+#ifdef RV64
+    li t0, CLINT_MTIME
+    ld t1, 0(t0)        // 读取 mtime
+    li t3, 10000000
+    add t3, t1, t3      // + 10000000
+    li t0, CLINT_MTIMECMP
+    sd t3, 0(t0)        // 写入 mtimecmp
+#else
+    li t0, CLINT_MTIME
+    lw t1, 0(t0)        // 读取 mtime 低 32 位
+    lw t2, 4(t0)        // 读取 mtime 高 32 位
+    li t3, 10000000
+    add t3, t1, t3      // 低 32 位 + 10000000
+    sltu t1, t3, t1     // 生成进位，若进位 t1 = 1
+    add t2, t2, t1      // 高 32 位进位
+    li t0, CLINT_MTIMECMP
+    sw t2, 4(t0)        // 写入 mtimecmp 高 32 位
+    sw t3, 0(t0)        // 写入 mtimecmp 低 32 位
+#endif
+
 #endif
 
     la ra, uregs              // 定位用户空间寄存器备份地址
@@ -191,8 +215,18 @@ SHELL:
 .USERRET_USER:
     ebreak
 
+    .global USERRET_TIMEOUT
+USERRET_TIMEOUT:
+    li a0, SIG_TIMEOUT              // 发送超时信号
+    jal WRITE_SERIAL                // 告诉终端用户程序结束运行
+    j 0f
+
     .global USERRET_MACHINE
 USERRET_MACHINE:
+    li a0, SIG_TIMETOKEN            // 发送停止计时信号
+    jal WRITE_SERIAL                // 告诉终端用户程序结束运行
+
+0:
     la s1, uregs
     li s2, TF_SIZE                  // 计数器
 .LC4:
@@ -205,9 +239,6 @@ USERRET_MACHINE:
 
     la s1, uregs
     LOAD sp, TF_ksp(s1)             // 重新获得当前监控程序栈顶指针
-
-    ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
-    jal WRITE_SERIAL                // 告诉终端用户程序结束运行
 
     j .DONE
 #endif
@@ -252,7 +283,7 @@ USERRET_MACHINE:
     la ra, .USERRET2
     STORE ra, TF_ra(a0)
 
-    ori a0, zero, TIMETOKEN         // 发送TIMETOKEN(0x07)信号
+    li a0, SIG_TIMETOKEN            // 发送停止计时信号
     jal WRITE_SERIAL                // 告诉终端用户程序结束运行
 
     j .DONE

@@ -363,6 +363,9 @@ def run_G(addr):
             ret = inp.read(1)
             if ret == b'\x07':
                 break
+            elif ret == b'\x81':
+                print('killed timeout program.')
+                break
             elif ret == b'\x80':
                 trap()
             output_binary(ret)
