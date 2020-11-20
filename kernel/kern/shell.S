@@ -141,8 +141,6 @@ SHELL:
     csrw mepc, s10                  // 用户程序入口写入EPC
     li a0, MSTATUS_MPP_MASK
     csrc mstatus, a0                // 设置 MPP=0，对应 U-mode
-    li a0, MSTATUS_MPIE
-    csrs mstatus, a0                // 设置 MPIE=1，进入用户态后打开中断
 
     // 设置时钟中断，用于检测运行超时
 #ifdef RV64

@@ -19,8 +19,6 @@
 #define SYS_exit 1
 #define SYS_putc 30
 
-#define MSTATUS_MIE (1 << 3)
-#define MSTATUS_MPIE (1 << 7)
 #define MSTATUS_MPP_MASK 0x1800
 
 #define MIE_MTIE (1 << 7)

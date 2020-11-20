@@ -144,7 +144,7 @@ MRET   00110000001000000000000001110011
 2. mscratch
 3. mepc
 4. mcause: Interrupt, Exception Code
-5. mstatus: MPP, MIE, MPIE
+5. mstatus: MPP
 6. mie: MTIE
 7. mip: MTIP
 
