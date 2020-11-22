@@ -11,11 +11,14 @@ TCBT:
     .global current                 // current thread TCB address
 current:
     .dword 0
-#ifdef ENABLE_PAGING                // 声明页表
+
+    // 页表
+#ifdef ENABLE_PAGING
     .section .data
     .global PAGE_TABLE
-    .global PTESTACK
-    .p2align 12                     // 每个两页，页对齐
+    // 一个页 4096 字节 = 2^12
+    .p2align 12
+    // 预留空间，之后的代码里进行初始化
 PAGE_TABLE:
     .rept 1024
     .long 0
@@ -68,6 +71,7 @@ PAGE_TABLE_USER_STACK_3:
     .endr
 #endif
 
+    // 启动时输出的信息
     .section .rodata
 monitor_version:
     .asciz "MONITOR for RISC-V - initialized."
@@ -78,6 +82,7 @@ monitor_version:
     .global START
 START:
     // 清空 BSS
+    // _sbss 和 _ebss 在 ld script 中定义
     la s10, _sbss
     la s11, _ebss
 bss_init:
@@ -85,17 +90,17 @@ bss_init:
     sw  zero, 0(s10)
     addi s10, s10, 4
     j   bss_init
-
 bss_init_done:
+
 #ifdef ENABLE_INT
     // 设置异常处理地址寄存器 mtvec
     la s0, EXCEPTION_HANDLER
     csrw mtvec, s0
-    
+
     // 判断是否设置成功（mtvec 是 WARL）
     csrr t0, mtvec
     beq t0, s0, mtvec_done
-    
+
     // 不成功，尝试 MODE=VECTORED
     la s0, VECTORED_EXCEPTION_HANDLER
     ori s0, s0, 1
@@ -103,10 +108,13 @@ bss_init_done:
 mtvec_done:
 #endif
 
-    la sp, KERNEL_STACK_INIT         // 设置内核栈
-    or s0, sp, zero
-    li t0, USER_STACK_INIT          // 设置用户栈
+    // 设置内核栈
+    la sp, KERNEL_STACK_INIT
+
+    // 设置用户栈
+    li t0, USER_STACK_INIT
     // 设置用户态程序的 sp(x2) 和 fp(x8) 寄存器
+    // uregs_sp 和 uregs_fp 在 ld script 中定义
     la t1, uregs_sp
     STORE t0, 0(t1)
     la t1, uregs_fp
@@ -134,7 +142,7 @@ mtvec_done:
     sb t1, %lo(COM_IER_OFFSET)(t0)
 #endif
 
-    // 清空并留出空间用于存储中断帧
+    // 从内核栈顶清空并留出 TF_SIZE 大小的空间用于存储中断帧
     li t0, TF_SIZE
 .LC0:
     addi t0, t0, -XLEN
@@ -142,8 +150,9 @@ mtvec_done:
     STORE zero, 0(sp)
     bne t0, zero, .LC0
 
-    la t0, TCBT               // 载入TCBT地址
-    STORE sp, 0(t0)           // thread0(idle)的中断帧地址设置
+    // 保存中断帧地址到 TCBT
+    la t0, TCBT
+    STORE sp, 0(t0)
 
     mv t6, sp                 // t6保存idle中断帧位置
 
@@ -165,7 +174,7 @@ mtvec_done:
     csrw mscratch, t2              // 设置当前线程为thread1
 #endif
 
-    la t1, current   
+    la t1, current
     sw t2, 0(t1)
 
 #ifdef ENABLE_PAGING
@@ -341,17 +350,3 @@ WELCOME:
     bne a0, zero, .Loop0            // 打印循环至0结束符
 
     j SHELL                         // 开始交互
-
-IDLELOOP:
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    j IDLELOOP
-    nop
