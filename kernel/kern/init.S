@@ -42,7 +42,8 @@ PAGE_TABLE_USER_CODE_2:
 PAGE_TABLE_KERNEL_CODE:
 #ifdef RV32
     .long 0x200000fb                // 0x80000000 -> 0x80000000 DAGUX-RV
-    .rept 255
+    .long 0x200004fb                // 0x80001000 -> 0x80001000 DAGUX-RV
+    .rept 254
     .long 0
     .endr
     .long 0x200400fb                // 0x80000000 -> 0x80100000 DAGUX-RV
