@@ -186,7 +186,12 @@ SFENCE.VMA  0001001SSSSSsssss000000001110011
 - va[0x80001000, 0x80001FFF] = pa[0x80001000, 0x80001FFF] DAGUX-RV 用于运行 UTEST 程序（CRYPTONIGHT 除外）
 - va[0x80100000, 0x80100FFF] = pa[0x80100000, 0x80100FFF] DAGUX-RV 方便测试
 
-Sv39 下为了实现的方便，映射的地址比以上的地址区域更大一些。
+Sv39 下为了实现的方便，映射的地址比以上的地址区域更大一些：
+
+- va[0x00000000, 0x002FFFFF] = pa[0x80100000, 0x803FFFFF] DAGUX-RV 用户态代码
+- va[0x7FC10000, 0x7FFFFFFF] = pa[0x80400000, 0x807EFFFF] DAGU-WRV 用户态数据
+- va[0x80000000, 0x801FFFFF] = pa[0x80000000, 0x801FFFFF] DAGUX-RV 用于返回内核态、运行 UTEST 程序和方便测试
+
 
 其它地址都未经映射，访问则会引发异常。
 
