@@ -44,6 +44,8 @@ EXCEPTION_HANDLER:
     STORE t0, TF_epc(sp)
 
     csrr t0, mcause
+    li t1, EX_INT_FLAG | EX_INT_MODE_MACHINE | EX_INT_TYPE_TIMER
+    beq t1, t0, .HANDLE_TIMER
     li t1, EX_INT_FLAG
     and t1, t0, t1
     bne t1, zero, .HANDLE_INT
@@ -78,6 +80,12 @@ EXCEPTION_HANDLER:
     // 暂未实现
     j FATAL
 
+.HANDLE_TIMER:
+    csrr t0, mstatus
+    li t1, MSTATUS_MPP_MASK
+    and t0, t0, t1                  // 读取 mstatus.MPP
+    bne t0, zero, CONTEXT_SWITCH    // 来自 M 态的中断，直接返回
+    j USERRET_TIMEOUT               // 处理用户程序超时
 
 CONTEXT_SWITCH:
     LOAD t0, TF_epc(sp)
@@ -134,7 +142,7 @@ EXCEPTION_HANDLER:
 #endif
 
 FATAL:                              // 严重问题，重启
-    ori a0, zero, 0x80              // 错误信号
+    li a0, SIG_FATAL                // 错误信号
     jal WRITE_SERIAL                // 发送
 
 #ifdef ENABLE_INT

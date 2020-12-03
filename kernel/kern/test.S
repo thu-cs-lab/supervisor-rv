@@ -102,6 +102,9 @@ UTEST_PUTC:
     li a0, 0x4B              // 'K'
     ecall
     jr ra
+
+UTEST_SPIN:
+    j UTEST_SPIN
 #endif
 
 UTEST_CRYPTONIGHT:

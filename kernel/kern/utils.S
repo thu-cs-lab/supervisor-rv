@@ -6,6 +6,7 @@
     .global WRITE_SERIAL
     .global WRITE_SERIAL_WORD
     .global WRITE_SERIAL_XLEN
+    .global WRITE_SERIAL_STRING
     .global READ_SERIAL
     .global READ_SERIAL_WORD
     .global READ_SERIAL_XLEN
@@ -63,6 +64,16 @@ WRITE_SERIAL_XLEN:
     addi sp, sp, XLEN
 
     jr ra
+
+WRITE_SERIAL_STRING:                // 写字符串：将 a0 地址开始处的字符串写入串口
+    mv a1, a0
+    mv a2, ra
+    lb a0, 0(a1)
+0:  jal WRITE_SERIAL                // 调用串口写函数
+    addi a1, a1, 0x1
+    lb a0, 0(a1)
+    bne a0, zero, 0b                // 打印循环至 0 结束符
+    jr a2
 
 READ_SERIAL:                        // 读串口：将读到的数据写入a0低八位
     li t0, COM1
