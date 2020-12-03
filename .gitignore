@@ -2,3 +2,4 @@
 */kernel.elf
 */obj/*
 *.test
+.vscode/
