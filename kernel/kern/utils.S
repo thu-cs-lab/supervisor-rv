@@ -81,12 +81,6 @@ READ_SERIAL:                        // 读串口：将读到的数据写入a0低
     lb t1, %lo(COM_LSR_OFFSET)(t0)
     andi t1, t1, COM_LSR_DR         // 截取读状态位
     bne t1, zero, .RSERIAL          // 状态位非零可读进入读
-/*
-#ifdef ENABLE_INT
-    ori v0, zero, SYS_wait          // 取得wait调用号
-    syscall SYSCALL_BASE            // 睡眠等待
-#endif
-*/
     j .TESTR                        // 检测验证
 .RSERIAL:
     lb a0, %lo(COM_RBR_OFFSET)(t0)

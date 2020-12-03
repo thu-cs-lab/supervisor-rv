@@ -29,9 +29,9 @@ UTEST_1PTB:
     li t0, TESTLOOP64         // 装入64M
 .LC0:
     addi t0, t0, -1                // 滚动计数器
-    ori t1, zero, 0
-    ori t2, zero, 1
-    ori t3, zero, 2
+    li t1, 0
+    li t2, 1
+    li t3, 2
     bne t0, zero, .LC0
     jr ra
 
@@ -42,9 +42,9 @@ UTEST_1PTB:
      */
 UTEST_2DCT:
     lui t0, %hi(TESTLOOP16)         // 装入16M
-    ori t1, zero, 1
-    ori t2, zero, 2
-    ori t3, zero, 3
+    li t1, 1
+    li t2, 2
+    li t3, 3
 .LC1:
     xor t2, t2, t1                  // 交换t1,t2
     xor t1, t1, t2

@@ -21,15 +21,15 @@ uregs:
 SHELL:
     jal READ_SERIAL                  // 读操作符
 
-    ori t0, zero, 'R'
+    li t0, 'R'
     beq a0, t0, .OP_R
-    ori t0, zero, 'D'
+    li t0, 'D'
     beq a0, t0, .OP_D
-    ori t0, zero, 'A'
+    li t0, 'A'
     beq a0, t0, .OP_A
-    ori t0, zero, 'G'
+    li t0, 'G'
     beq a0, t0, .OP_G
-    ori t0, zero, 'T'
+    li t0, 'T'
     beq a0, t0, .OP_T
 
     li a0, XLEN                     // 错误的操作符，输出 XLEN，用于区分 RV32 和 RV64
@@ -69,7 +69,7 @@ SHELL:
     STORE s2, XLEN(sp)
 
     la s1, uregs
-    ori s2, zero, 31*XLEN               // 计数器，打印 31 个寄存器
+    li s2, 31*XLEN               // 计数器，打印 31 个寄存器
 .LC1:
     lb a0, 0(s1)           // 读取字节
     addi s2, s2, -1                 // 滚动计数器
