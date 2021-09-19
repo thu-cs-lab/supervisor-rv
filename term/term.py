@@ -384,6 +384,10 @@ def MainLoop():
             cmd = raw_input('>> ').strip().upper()
         except EOFError:
             break
+        except KeyboardInterrupt:
+            print("")
+            print("KeyboardInterrupt")
+            continue
         EmptyBuf()
         try:
             if cmd == 'Q':
@@ -421,6 +425,10 @@ def MainLoop():
                 print("\tT: print page table")
         except ValueError as e:
             print(e)
+        except KeyboardInterrupt:
+            print("")
+            print("KeyboardInterrupt")
+            continue
 
 def InitializeSerial(pipe_path, baudrate):
     global outp, inp
