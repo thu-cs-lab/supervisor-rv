@@ -384,6 +384,10 @@ def MainLoop():
             cmd = raw_input('>> ').strip().upper()
         except EOFError:
             break
+        except KeyboardInterrupt:
+            print("")
+            print("KeyboardInterrupt")
+            continue
         EmptyBuf()
         try:
             if cmd == 'Q':
@@ -414,12 +418,17 @@ def MainLoop():
                 print("Invalid command")
                 print("Usage:\tR: print registers")
                 print("\tD: display memory")
-                print("\tA: put assembly at specified address")
+                print("\tA: write assembly in command line and put at specified address")
+                print("\tF: load assembly from file and put at specified address")
                 print("\tU: read data and disassemble")
                 print("\tG: run user code")
                 print("\tT: print page table")
         except ValueError as e:
             print(e)
+        except KeyboardInterrupt:
+            print("")
+            print("KeyboardInterrupt")
+            continue
 
 def InitializeSerial(pipe_path, baudrate):
     global outp, inp
