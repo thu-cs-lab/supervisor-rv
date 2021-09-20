@@ -342,6 +342,7 @@ mtvec_done:
     sfence.vma
 #endif
 
+#ifdef ENABLE_INT
     // 设置 PMP Config
 #ifdef RV32
     // 0x00000000-0xffffffff RWX
@@ -355,6 +356,7 @@ mtvec_done:
     csrw pmpcfg0, t0
     li t0, 0xffffffffffffffff
     csrw pmpaddr0, t0
+#endif
 #endif
 
     j WELCOME                       // 进入主线程
