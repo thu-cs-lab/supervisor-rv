@@ -4,11 +4,15 @@
 
     .section .bss
     .p2align 2
-    .global TCBT                    // thread control block table
+
+    // TCBT = Thread Control Block Table
+    .global TCBT
 TCBT:
     .dword 0
     .dword 0
-    .global current                 // current thread TCB address
+
+    // 当前线程 TCB 地址
+    .global current
 current:
     .dword 0
 
@@ -18,27 +22,34 @@ current:
     .global PAGE_TABLE
     // 一个页 4096 字节 = 2^12
     .p2align 12
-    // 预留空间，之后的代码里进行初始化
+    // 预留空间，在之后的代码里进行初始化
 PAGE_TABLE:
     .rept 1024
     .long 0
     .endr
+
+    // RV64 的 Sv39 下页表比 Sv32 多了一级
 #ifdef RV64
 PAGE_TABLE_2:
     .rept 1024
     .long 0
     .endr
 #endif
+
+    // 用户代码的页表
 PAGE_TABLE_USER_CODE:
     .rept 1024
     .long 0
     .endr
+
 #ifdef RV64
 PAGE_TABLE_USER_CODE_2:
     .rept 1024
     .long 0
     .endr
 #endif
+
+    // 内核代码的页表
 PAGE_TABLE_KERNEL_CODE:
 #ifdef RV32
     .long 0x200000fb                // 0x80000000 -> 0x80000000 DAGUX-RV
@@ -56,6 +67,8 @@ PAGE_TABLE_KERNEL_CODE:
     .dword 0
     .endr
 #endif
+
+    // 用户栈的页表
 PAGE_TABLE_USER_STACK:
     .rept 1024
     .long 0
@@ -72,8 +85,8 @@ PAGE_TABLE_USER_STACK_3:
     .endr
 #endif
 
-    // 启动时输出的信息
     .section .rodata
+    // 启动时输出的信息
 monitor_version:
     .asciz "MONITOR for RISC-V - initialized."
 
@@ -108,8 +121,9 @@ bss_init_done:
     csrw mtvec, s0
 mtvec_done:
 
+    // 打开时钟中断
     li t0, MIE_MTIE
-    csrw mie, t0                    // 打开时钟中断
+    csrw mie, t0
 #endif
 
     // 设置内核栈
@@ -141,7 +155,7 @@ mtvec_done:
     li t1, COM_LCR_CONFIG
     sb t1, %lo(COM_LCR_OFFSET)(t0)
     sb x0, %lo(COM_MCR_OFFSET)(t0)
-    // 开串口中断
+    // 打开串口中断
     li t1, COM_IER_RDI
     sb t1, %lo(COM_IER_OFFSET)(t0)
 #endif
@@ -158,24 +172,31 @@ mtvec_done:
     la t0, TCBT
     STORE sp, 0(t0)
 
-    mv t6, sp                 // t6保存idle中断帧位置
+    // t6 保存 idle 中断帧位置
+    mv t6, sp
 
+    // 初始化栈空间
     li t0, TF_SIZE
 .LC1:
-    addi t0, t0, -XLEN              // 滚动计数器
-    addi sp, sp, -XLEN              // 移动栈指针
-    STORE zero, 0(sp)               // 初始化栈空间
-    bne t0, zero, .LC1              // 初始化循环
+    addi t0, t0, -XLEN
+    addi sp, sp, -XLEN
+    STORE zero, 0(sp)
+    bne t0, zero, .LC1
 
-    la t0, TCBT                     // 载入TCBT地址
-    STORE sp, XLEN(t0)                    // thread1(shell/user)的中断帧地址设置
-    STORE sp, TF_sp(t6)                // 设置idle线程栈指针(调试用?)
+    // 载入TCBT地址
+    la t0, TCBT
+    // thread1(shell/user) 的中断帧地址设置
+    STORE sp, XLEN(t0)
+    // 设置 idle 线程栈指针(调试用?)
+    STORE sp, TF_sp(t6)
 
+    // 取得 thread1 的 TCB 地址
     la t2, TCBT + XLEN
-    LOAD t2, 0(t2)                    // 取得thread1的TCB地址
+    LOAD t2, 0(t2)
 
 #ifdef ENABLE_INT
-    csrw mscratch, t2              // 设置当前线程为thread1
+    // 设置当前线程为 thread1
+    csrw mscratch, t2
 #endif
 
     la t1, current
@@ -183,10 +204,10 @@ mtvec_done:
 
 #ifdef ENABLE_PAGING
 #ifdef RV32
-    // 一级页表，PAGE_TABLE 为一级页表
+    // Sv32 是两级页表，PAGE_TABLE 为一级页表
     la t0, PAGE_TABLE
 #else
-    // 三级页表，PAGE_TABLE 为一级页表，PAGE_TABLE_2为二级页表
+    // Sv39 是三级页表，PAGE_TABLE 为一级页表，PAGE_TABLE_2为二级页表
     la t0, PAGE_TABLE_2
     la t1, PAGE_TABLE
     srli t0, t0, 2
@@ -330,6 +351,7 @@ mtvec_done:
     sw t1, 0(t2)
 #endif
 
+    // 让页表生效
     la t0, PAGE_TABLE
     srli t0, t0, 12
 #ifdef RV32
@@ -359,10 +381,13 @@ mtvec_done:
 #endif
 #endif
 
-    j WELCOME                       // 进入主线程
+    // 进入主线程
+    j WELCOME
 
 WELCOME:
-    la a0, monitor_version          // 装入启动信息
+    // 装入启动信息并打印
+    la a0, monitor_version
     jal WRITE_SERIAL_STRING
 
-    j SHELL                         // 开始交互
+    // 开始交互
+    j SHELL

@@ -9,10 +9,8 @@
 #define TESTLOOP64  0x04000000      /*  64M约6.7千万次   */
 #define TESTLOOP32  0x02000000      /*  32M约3.4千万次   */
 #define TESTLOOP16  0x01000000      /*  16M约1.7千万次   */
-    
 
-    //.set noreorder
-    //.set noat
+
     .section .text.utest
     .p2align 2
 
@@ -20,13 +18,12 @@ UTEST_SIMPLE:
     addi t5, t5, 0x1
     jr ra
 
-/*  性能标定程序(1)
+    /*  性能标定程序(1)
      *  这段程序一般没有数据冲突和结构冲突，可作为性能标定。
-     *  若执行延迟槽，执行这段程序需至少384M指令，384M/time可算得频率。
-     *  不执行延迟槽，执行这段程序需至少320M指令，320M/time可算得频率。
+     *  执行这段程序需至少 384M 指令，384M/time 可算得频率。
      */
 UTEST_1PTB:
-    li t0, TESTLOOP64         // 装入64M
+    li t0, TESTLOOP64         // 装入 64M
 .LC0:
     addi t0, t0, -1                // 滚动计数器
     li t1, 0
@@ -37,8 +34,7 @@ UTEST_1PTB:
 
     /*  运算数据冲突的效率测试(2)
      *  这段程序含有大量数据冲突，可测试数据冲突对效率的影响。
-     *  执行延迟槽，执行这段程序需至少192M指令。
-     *  不执行延迟槽，执行这段程序需至少176M指令。
+     *  执行这段程序需至少 192M 指令。
      */
 UTEST_2DCT:
     lui t0, %hi(TESTLOOP16)         // 装入16M
@@ -61,8 +57,7 @@ UTEST_2DCT:
 
     /*  控制指令冲突测试(3)
      *  这段程序有大量控制冲突。
-     *  无延迟槽执行需要至少256M指令；
-     *  有延迟槽需要224M指令。
+     *  执行需要至少 256M 指令。
      */
 UTEST_3CCT:
     lui t0, %hi(TESTLOOP64)         // 装入64M
@@ -78,8 +73,7 @@ UTEST_3CCT:
 
     /*  访存相关数据冲突测试(4)
      *  这段程序反复对内存进行有数据冲突的读写。
-     *  不执行延迟槽需要至少192M指令。
-     *  执行延迟槽，需要至少224M指令。
+     *  需要至少执行 192M 指令。
      */
 UTEST_4MDCT:
     lui t0, %hi(TESTLOOP32)          // 装入32M
@@ -91,6 +85,7 @@ UTEST_4MDCT:
     sw t1, 0(sp)
     lw t0, 0(sp)
     bne t0, zero, .LC3
+
     addi sp, sp, 4
     jr ra
 

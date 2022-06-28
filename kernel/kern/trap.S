@@ -6,10 +6,12 @@
 
 #ifdef ENABLE_INT
 EXCEPTION_HANDLER:
-    csrrw sp, mscratch, sp          // 交换 mscratch 和 sp ，保存上下文
+    // 交换 mscratch 和 sp ，保存上下文
+    csrrw sp, mscratch, sp
 
     STORE ra, TF_ra(sp)
-    csrrw ra, mscratch, sp          // 读出原来的 sp
+    // 读出原来的 sp
+    csrrw ra, mscratch, sp
     STORE ra, TF_sp(sp)
     STORE gp, TF_gp(sp)
     STORE tp, TF_tp(sp)
@@ -43,6 +45,7 @@ EXCEPTION_HANDLER:
     csrr t0, mepc
     STORE t0, TF_epc(sp)
 
+    // 根据 mcause 调用不同的异常处理例程
     csrr t0, mcause
     li t1, EX_INT_FLAG | EX_INT_MODE_MACHINE | EX_INT_TYPE_TIMER
     beq t1, t0, .HANDLE_TIMER
@@ -81,11 +84,15 @@ EXCEPTION_HANDLER:
     j FATAL
 
 .HANDLE_TIMER:
+    // 读取 mstatus.MPP
     csrr t0, mstatus
     li t1, MSTATUS_MPP_MASK
-    and t0, t0, t1                  // 读取 mstatus.MPP
-    bne t0, zero, CONTEXT_SWITCH    // 来自 M 态的中断，直接返回
-    j USERRET_TIMEOUT               // 处理用户程序超时
+    and t0, t0, t1
+    // 来自 M 态的中断，直接返回
+    bne t0, zero, CONTEXT_SWITCH
+
+    // 处理用户程序超时
+    j USERRET_TIMEOUT
 
 CONTEXT_SWITCH:
     LOAD t0, TF_epc(sp)
@@ -141,9 +148,12 @@ EXCEPTION_HANDLER:
     j HALT
 #endif
 
-FATAL:                              // 严重问题，重启
-    li a0, SIG_FATAL                // 错误信号
-    jal WRITE_SERIAL                // 发送
+FATAL:
+    // 严重问题，重启
+    // 错误信号
+    li a0, SIG_FATAL
+    // 发送
+    jal WRITE_SERIAL
 
 #ifdef ENABLE_INT
     csrrs a0, mepc, zero
@@ -159,5 +169,6 @@ FATAL:                              // 严重问题，重启
     jal WRITE_SERIAL_XLEN
 #endif
 
-    la a0, START                    // 重启地址
+    // 重启地址
+    la a0, START
     jr a0
