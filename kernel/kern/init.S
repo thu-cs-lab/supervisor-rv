@@ -57,7 +57,7 @@ PAGE_TABLE_KERNEL_CODE:
     .rept 254
     .long 0
     .endr
-    .long 0x200400fb                // 0x80000000 -> 0x80100000 DAGUX-RV
+    .long 0x200400fb                // 0x80100000 -> 0x80100000 DAGUX-RV
     .rept 767
     .long 0
     .endr
