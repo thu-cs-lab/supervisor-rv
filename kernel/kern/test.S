@@ -103,7 +103,11 @@ UTEST_SPIN:
 #endif
 
 UTEST_CRYPTONIGHT:
+#ifdef ENABLE_PAGING
+    li a0, 0x7FC10000
+#else
     li a0, 0x80400000 // base addr
+#endif
     li a1, 0x200000 // 2M bytes
     li a3, 524288 // number of iterations
     li a4, 0x1FFFFC // 2M mask
