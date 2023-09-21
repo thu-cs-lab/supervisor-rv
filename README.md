@@ -401,7 +401,10 @@ Find the GDB manual and other documentation resources online at:
 For help, type "help".
 Type "apropos word" to search for commands related to "word"...
 Reading symbols from kernel/kernel.elf...
-(gdb) 
+(gdb) target remote localhost:1234
+Remote debugging using localhost:1234
+0x00001000 in ?? ()
+(gdb)
 ```
 
 之后就可以正常进行调试。
