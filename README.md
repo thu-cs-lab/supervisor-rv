@@ -381,20 +381,20 @@ $ python3 term/term.py -t 127.0.0.1:6666 -c
 connecting to 127.0.0.1:6666...connected
 ```
 
-这一步连上以后，就可以用 gdb 挂载到 qemu 里的 kernel 上了。采用比较新的 gdb 或者 SiFive 的 riscv64-elf-unknown-gdb 都是可以的。命令：
+这一步连上以后，就可以用 gdb 挂载到 qemu 里的 kernel 上了。采用**比较新**的 gdb 或者 SiFive 的 riscv64-elf-unknown-gdb （Windows 最好用这个）都是可以的。命令：
 
 ```bash
-$ gdb kernel/kernel.elf
-GNU gdb (GDB) 9.2
-Copyright (C) 2020 Free Software Foundation, Inc.
+$ riscv64-unknown-elf-gdb kernel/kernel.elf
+GNU gdb (SiFive GDB 8.3.0-2019.08.0) 8.3
+Copyright (C) 2019 Free Software Foundation, Inc.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 Type "show copying" and "show warranty" for details.
-This GDB was configured as "x86_64-apple-darwin19.4.0".
+This GDB was configured as "--host=x86_64-w64-mingw32 --target=riscv64-unknown-elf".
 Type "show configuration" for configuration details.
 For bug reporting instructions, please see:
-<http://www.gnu.org/software/gdb/bugs/>.
+<https://github.com/sifive/freedom-tools/issues>.
 Find the GDB manual and other documentation resources online at:
     <http://www.gnu.org/software/gdb/documentation/>.
 
