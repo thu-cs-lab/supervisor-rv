@@ -233,7 +233,25 @@ Term 程序运行在实验者的电脑上，提供监控程序和人交互的界
 
 利用这些命令，实验者可以输入一段汇编程序，检查数据是否正确写入，并让程序在处理器上运行验证。
 
-Term 程序位于 `term` 文件夹中，可执行文件为 `term.py` 。对于本地的 Thinpad，运行程序时用 `-s` 选项指定串口。例如：
+Term 程序位于 `term` 文件夹中，可执行文件为 `term.py`。`term.py` 依赖 pyserial，首先需要安装 pyserial：
+
+- 如果你使用的是 Debian/Ubuntu 等发行版，可以用 apt 全局安装 pyserial：`sudo apt install python-serial`
+- 如果 Python 版本小于 3.11，也可以用 pip 全局安装 pyserial：`pip3 install -U pyserial`
+- 如果 Python 版本不小于 3.11，则默认不允许用 pip 全局安装 pyserial，需要首先创建虚拟环境（venv），然后在虚拟环境中用 pip 安装 pyserial，之后用 term.py 前，都要先激活虚拟环境：
+
+```shell
+# 在当前目录的 venv 目录下创建一个虚拟环境
+python3 -m venv venv
+# 在当前 shell 中激活虚拟环境（对于 fish shell，则是 source venv/bin/activate.fish）
+source venv/bin/activate
+# 在虚拟环境中安装 pyserial
+pip3 install -U pyserial
+# 在**虚拟环境**中运行 term.py
+# 如果提示找不到 pyserial，记得激活虚拟环境
+python3 term.py
+```
+
+对于本地的 Thinpad，运行程序时用 `-s` 选项指定串口。例如：
 
 `python term.py -s COM3` 或者 `python term.py -s /dev/ttyACM0`（串口名称根据实际情况修改）
 
