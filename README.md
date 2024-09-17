@@ -1,6 +1,6 @@
 # supervisor-rv：RISC-V 监控程序
 
-[![Build Status](https://travis-ci.org/jiegec/supervisor-rv.svg?branch=master)](https://travis-ci.org/jiegec/supervisor-rv)
+[![Build Status](https://github.com/thu-cs-lab/supervisor-rv/actions/workflows/main.yml/badge.svg)](https://github.com/thu-cs-lab/supervisor-rv/actions/workflows/main.yml/badge.svg)
 
 ## 介绍
 
