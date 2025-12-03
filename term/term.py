@@ -139,22 +139,28 @@ def run_T():
         return
     print("Page table at %08x" % addr)
     print("     Virtual Address     |      Physical Address     | D | A | G | U | X | W | R | V")
+
+    def fetch_page_table(paddr, is_rv64):
+        outp.write(b'D')
+        outp.write(int_to_byte_string(paddr))
+        outp.write(int_to_byte_string(4096))  # fetch 4KB data
+        raw_data = inp.read(4096)
+        if is_rv64: # RV64 (Sv39), 512 entries, each 8 bytes
+            return struct.unpack('<512Q', raw_data)
+        else:       # RV32 (Sv32): 1024 entries, each 4 bytes
+            return struct.unpack('<1024I', raw_data)
+
     if xlen == 4:
-        for vpn1 in range(0, 1024):
-            outp.write(b'D')
-            outp.write(int_to_byte_string(addr))
-            outp.write(int_to_byte_string(4))
-            entry = byte_string_to_int(inp.read(4))
+        # === RV32 (Sv32) ===
+        l1_entries = fetch_page_table(addr, False) 
+        for vpn1, entry in enumerate(l1_entries):
             if (entry & 1) != 0:
                 # Valid
                 if (entry & 0xe) == 0:
                     # non-leaf
                     addr2 = (entry >> 10) << 12
-                    outp.write(b'D')
-                    outp.write(int_to_byte_string(addr2))
-                    outp.write(int_to_byte_string(4096))
-                    for vpn0 in range(0, 1024):
-                        entry2 = byte_string_to_int(inp.read(4))
+                    l0_entries = fetch_page_table(addr2, False)
+                    for vpn0, entry2 in enumerate(l0_entries):
                         if (entry2 & 1) != 0:
                             # Valid
                             size = (1 << 12) - 1
@@ -171,35 +177,25 @@ def run_T():
                         (vaddr, vaddr + size, paddr, paddr + size, (entry >> 7) & 1, (entry >> 6) & 1,
                             (entry >> 5) & 1, (entry >> 4) & 1, (entry >> 3) & 1, (entry >> 2) & 1, (entry >> 1) & 1, entry & 1))
 
-            addr = addr + 4
     else:
-        for vpn2 in range(0, 512):
-            outp.write(b'D')
-            outp.write(int_to_byte_string(addr))
-            outp.write(int_to_byte_string(8))
-            entry = byte_string_to_int(inp.read(8))
+        # === RV64 (Sv39) ===
+        l2_entries = fetch_page_table(addr, True)
+        for vpn2, entry in enumerate(l2_entries):
             if (entry & 1) != 0:
                 # Valid
                 if (entry & 0xe) == 0:
-                    # non-leaf
+                    # non-leaf : point to l1
                     addr2 = (entry >> 10) << 12
-                    for vpn1 in range(0, 512):
-                        outp.write(b'D')
-                        outp.write(int_to_byte_string(addr2))
-                        outp.write(int_to_byte_string(8))
-                        entry2 = byte_string_to_int(inp.read(8))
+                    l1_entries = fetch_page_table(addr2, True)
+                    for vpn1, entry2 in enumerate(l1_entries):
                         if (entry2 & 1) != 0:
                             # Valid
                             if (entry2 & 0xe) == 0:
-                                # non-leaf
+                                # non-leaf : point to l0
                                 addr3 = (entry2 >> 10) << 12
-                                outp.write(b'D')
-                                outp.write(int_to_byte_string(addr3))
-                                outp.write(int_to_byte_string(4096))
-                                for vpn0 in range(0, 512):
-                                    entry3 = byte_string_to_int(inp.read(8))
+                                l0_entries = fetch_page_table(addr3, True)
+                                for vpn0, entry3 in enumerate(l0_entries):
                                     if (entry3 & 1) != 0:
-                                        # Valid
                                         size = (1 << 12) - 1
                                         vaddr = (vpn2 << 30) | (vpn1 << 21) | (vpn0 << 12)
                                         paddr = (entry3 >> 10) << 12
@@ -213,7 +209,6 @@ def run_T():
                                 print("    %08x-%08x          %08x-%08x       %x   %x   %x   %x   %x   %x   %x   %x" %
                                     (vaddr, vaddr + size, paddr, paddr + size, (entry2 >> 7) & 1, (entry2 >> 6) & 1, (entry2 >> 5) & 1,
                                         (entry2 >> 4) & 1, (entry2 >> 3) & 1, (entry2 >> 2) & 1, (entry2 >> 1) & 1, entry2 & 1))
-                        addr2 = addr2 + 8
                 else:
                     size = (1 << 30) - 1
                     vaddr = vpn2 << 30
@@ -222,7 +217,6 @@ def run_T():
                         (vaddr, vaddr + size, paddr, paddr + size, (entry >> 7) & 1, (entry >> 6) & 1, (entry >> 5) & 1,
                             (entry >> 4) & 1, (entry >> 3) & 1, (entry >> 2) & 1, (entry >> 1) & 1, entry & 1))
 
-            addr = addr + 8
 
 def run_A(addr):
     print("one instruction per line, empty line to end.")
