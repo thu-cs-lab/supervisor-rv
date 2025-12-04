@@ -20,7 +20,7 @@ jobs:
       - name: Setup QEMU
         run: |
           sudo apt update
-          sudo apt install -y qemu-system-riscv
+          sudo apt install -y qemu-system-misc
 
       - name: Build binaries
         run: |
