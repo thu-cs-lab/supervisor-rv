@@ -19,16 +19,12 @@ jobs:
 
       - name: Setup QEMU
         run: |
-          wget https://download.qemu.org/qemu-10.1.2.tar.xz
-          tar xJf qemu-10.1.2.tar.xz > /dev/null
-          cd qemu-10.1.2
-          ./configure --target-list="riscv32-softmmu riscv64-softmmu"
-          make
+          sudo apt update
+          sudo apt install -y qemu-system-riscv
 
       - name: Build binaries
         run: |
           export PATH=$PATH:$PWD/riscv64-unknown-elf-gcc-8.2.0-2019.05.3-x86_64-linux-ubuntu14/bin
-          export PATH=$PATH:$PWD/qemu-10.1.2/riscv32-softmmu:$PWD/qemu-10.1.2/riscv64-softmmu:$PWD/qemu-10.1.2;
           make BITS=32 -C kernel/
           make BITS=32 EN_FENCEI=y -C kernel/
           make BITS=32 EN_INT=y -C kernel/
