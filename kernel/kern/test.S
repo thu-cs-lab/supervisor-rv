@@ -130,7 +130,7 @@ UTEST_CRYPTONIGHT:
     bne a2, a1, .INIT_LOOP
 
     li a2, 0
-    li t0, 0
+    li t1, 0 // previous iteration's result
 .MAIN_LOOP:
     // calculate a valid addr from rand number
     and t0, s0, a4
