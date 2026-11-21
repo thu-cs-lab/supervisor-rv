@@ -45,7 +45,12 @@ ifeq ($(EN_UART16550), y)
 	ASFLAGS += -DENABLE_UART16550
 endif
 
-CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)_$(EN_FENCEI)_$(EN_UART16550)
+override EN_MTEST ?= n
+ifeq ($(EN_MTEST), y)
+	ASFLAGS += -DENABLE_MTEST
+endif
+
+CONFIG_FILE := .config_$(BITS)_$(EN_INT)_$(EN_PAGING)_$(EN_FENCEI)_$(EN_UART16550)_$(EN_MTEST)
 
 .PHONY: all clean show-utest sim debug inst
 
