@@ -178,9 +178,15 @@ SHELL:
     // 用户程序入口写入EPC
     csrw mepc, s10
 
+#ifdef ENABLE_MTEST
+    // 功能测试用：设置 MPP=3，程序在 M-mode 下运行
+    li a0, MSTATUS_MPP_MASK
+    csrs mstatus, a0
+#else
     // 设置 MPP=0，对应 U-mode
     li a0, MSTATUS_MPP_MASK
     csrc mstatus, a0
+#endif
 
     // 设置时钟中断，用于检测运行超时
 #ifdef RV64
