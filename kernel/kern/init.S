@@ -205,6 +205,9 @@ mtvec_done:
     sw t2, 0(t1)
 
 #ifdef ENABLE_PAGING
+    // 指向下一级页表的页表项（非叶子页表项）只设置 V 位。
+    // 特权态规范规定，非叶子页表项的 D、A、U 位保留，软件必须写 0；
+    // 从 1.12 版起，处理器遇到置了保留位的页表项会产生缺页异常。
 #ifdef RV32
     // Sv32 是两级页表，PAGE_TABLE 为一级页表
     la t0, PAGE_TABLE
@@ -213,7 +216,7 @@ mtvec_done:
     la t0, PAGE_TABLE_2
     la t1, PAGE_TABLE
     srli t0, t0, 2
-    ori t0, t0, 0xf1
+    ori t0, t0, 0x01
     sd t0, 0(t1)
 
     la t0, PAGE_TABLE_2
@@ -240,7 +243,7 @@ mtvec_done:
 
     la t1, PAGE_TABLE_USER_CODE
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
     sw t1, 0(t0)
 
     // Sv39 时需要第二个页
@@ -260,7 +263,7 @@ mtvec_done:
 
     la t1, PAGE_TABLE_USER_CODE_2
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
     sw t1, 8(t0)
 #endif
 
@@ -269,7 +272,7 @@ mtvec_done:
     la t0, PAGE_TABLE
     la t1, PAGE_TABLE_KERNEL_CODE
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
 #ifdef RV32
     li t2, 512*4
 #else
@@ -297,7 +300,7 @@ mtvec_done:
 
     la t1, PAGE_TABLE_USER_STACK
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
     li t2, 2044
     add t2, t0, t2
     sw t1, 0(t2)
@@ -333,13 +336,13 @@ mtvec_done:
     la t0, PAGE_TABLE_USER_STACK
     la t1, PAGE_TABLE_USER_STACK_2
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
     li t2, 4080
     add t2, t0, t2
     sw t1, 0(t2)
     la t1, PAGE_TABLE_USER_STACK_3
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
     li t2, 4088
     add t2, t0, t2
     sw t1, 0(t2)
@@ -347,7 +350,7 @@ mtvec_done:
     la t0, PAGE_TABLE
     la t1, PAGE_TABLE_USER_STACK
     srli t1, t1, 2
-    ori t1, t1, 0xf1
+    ori t1, t1, 0x01
     li t2, 8
     add t2, t0, t2
     sw t1, 0(t2)
